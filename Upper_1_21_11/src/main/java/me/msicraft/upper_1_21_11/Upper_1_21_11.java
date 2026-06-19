@@ -1,4 +1,4 @@
-package me.msicraft.upper_1_20_6;
+package me.msicraft.upper_1_21_11;
 
 import de.tr7zw.changeme.nbtapi.NBT;
 import de.tr7zw.changeme.nbtapi.iface.ReadWriteNBT;
@@ -17,24 +17,37 @@ import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.inventory.meta.components.FoodComponent;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import io.papermc.paper.datacomponent.DataComponentTypes;
+import io.papermc.paper.datacomponent.item.Consumable;
+import io.papermc.paper.datacomponent.item.consumable.ConsumeEffect;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public class Upper_1_20_6 implements Wrapper {
+public class Upper_1_21_11 implements Wrapper {
 
-    private static Upper_1_20_6 instance;
+    private static Upper_1_21_11 instance;
 
-    private Upper_1_20_6() {
+    private Upper_1_21_11() {
     }
 
-    public static Upper_1_20_6 getInstance() {
+    public static Upper_1_21_11 getInstance() {
         if (instance == null) {
-            instance = new Upper_1_20_6();
+            instance = new Upper_1_21_11();
         }
         return instance;
+    }
+
+    @Override
+    public String translateColorCodes(String message) {
+        if (message == null) return null;
+        return LegacyComponentSerializer.legacySection().serialize(
+                LegacyComponentSerializer.legacyAmpersand().deserialize(message)
+        );
     }
 
     @Override
@@ -47,24 +60,23 @@ public class Upper_1_20_6 implements Wrapper {
         if (customFood.hasOption(Food.Options.DISPLAYNAME)) {
             String displayName = (String) customFood.getOptionValue(Food.Options.DISPLAYNAME);
             if (displayName != null) {
-                displayName = translateColorCodes(displayName);
-                itemMeta.setDisplayName(displayName);
+                Component displayNameComponent = LegacyComponentSerializer.legacyAmpersand().deserialize(displayName);
+                itemMeta.displayName(displayNameComponent);
             }
         }
         if (customFood.hasOption(Food.Options.CUSTOM_MODEL_DATA)) {
             itemMeta.setCustomModelData((int) customFood.getOptionValue(Food.Options.CUSTOM_MODEL_DATA));
         }
-        List<String> lore = new ArrayList<>(customFood.getLore().size());
+
+        List<Component> lore = new ArrayList<>(customFood.getLore().size());
         for (String s : customFood.getLore()) {
-            s = translateColorCodes(s);
-            lore.add(s);
+            lore.add(LegacyComponentSerializer.legacyAmpersand().deserialize(s));
         }
-        itemMeta.setLore(lore);
+        itemMeta.lore(lore);
 
         if ((boolean) customFood.getOptionValue(Food.Options.HIDE_ENCHANT)) {
             itemMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
         }
-        //if ((boolean) customFood.getOptionValue(Food.Options.HIDE_POTION_EFFECT)) {}
         if ((boolean) customFood.getOptionValue(Food.Options.HIDE_ADDITIONAL_TOOLTIP)) {
             itemMeta.addItemFlags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
         }
@@ -79,22 +91,8 @@ public class Upper_1_20_6 implements Wrapper {
             double saturationD = (double) customFood.getOptionValue(Food.Options.SATURATION);
             foodComponent.setSaturation((float) saturationD);
         }
-        if (customFood.hasOption(Food.Options.EAT_SECONDS)) {
-            double eatSecondsD = (double) customFood.getOptionValue(Food.Options.EAT_SECONDS);
-            if (eatSecondsD > -1) {
-                if (bukkitVersion >= 1212) {
-                } else {
-                    foodComponent.setEatSeconds((float) eatSecondsD);
-                }
-            }
-        }
+
         foodComponent.setCanAlwaysEat((boolean) customFood.getOptionValue(Food.Options.ALWAYS_EAT));
-        for (FoodPotionEffect foodPotionEffect : customFood.getPotionEffects()) {
-            if (bukkitVersion >= 1212) {
-            } else {
-                foodComponent.addEffect(foodPotionEffect.getPotionEffect(), Float.parseFloat(String.valueOf(foodPotionEffect.getChance())));
-            }
-        }
 
         dataContainer.set(namespacedKeyMap.get("CustomFood"), PersistentDataType.STRING, customFood.getInternalName());
 
@@ -120,7 +118,7 @@ public class Upper_1_20_6 implements Wrapper {
                 propertiesNbt.setString("name", "textures");
                 propertiesNbt.setString("value", (String) customFood.getOptionValue(Food.Options.TEXTURE_VALUE));
             });
-        } else if (itemStack.getType() == Material.POTION || itemStack.getType() == Material.LINGERING_POTION || itemStack.getType() == Material.LINGERING_POTION) {
+        } else if (itemStack.getType() == Material.POTION || itemStack.getType() == Material.LINGERING_POTION || itemStack.getType() == Material.SPLASH_POTION) {
             PotionMeta potionMeta = (PotionMeta) itemStack.getItemMeta();
             String colorCode = (String) customFood.getOptionValue(Food.Options.POTION_COLOR);
             Color color;
@@ -136,7 +134,7 @@ public class Upper_1_20_6 implements Wrapper {
         }
 
         if (!itemStack.getType().isEdible()) {
-            if (bukkitVersion >= 1212) {
+            if (bukkitVersion >= 12102) { // Matches robust semantic checks
                 NBT.modifyComponents(itemStack, nbt -> {
                     ReadWriteNBT consumableNbt = nbt.getOrCreateCompound("minecraft:consumable");
                     consumableNbt.setString("animation", "eat");
@@ -152,6 +150,37 @@ public class Upper_1_20_6 implements Wrapper {
                 });
             }
         }
+
+        if (bukkitVersion >= 12102) { // Matches robust semantic checks
+            Consumable.Builder consumableBuilder;
+            if (itemStack.hasData(DataComponentTypes.CONSUMABLE)) {
+                consumableBuilder = itemStack.getData(DataComponentTypes.CONSUMABLE).toBuilder();
+            } else {
+                consumableBuilder = Consumable.consumable();
+            }
+
+            if (customFood.hasOption(Food.Options.EAT_SECONDS)) {
+                double eatSecondsD = (double) customFood.getOptionValue(Food.Options.EAT_SECONDS);
+                if (eatSecondsD > -1) {
+                    consumableBuilder.consumeSeconds((float) eatSecondsD);
+                }
+            }
+
+            List<ConsumeEffect> paperEffects = new ArrayList<>();
+            for (FoodPotionEffect foodPotionEffect : customFood.getPotionEffects()) {
+                ConsumeEffect.ApplyStatusEffects effect = ConsumeEffect.applyStatusEffects(
+                        List.of(foodPotionEffect.getPotionEffect()),
+                        Float.parseFloat(String.valueOf(foodPotionEffect.getChance()))
+                );
+                paperEffects.add(effect);
+            }
+            if (!paperEffects.isEmpty()) {
+                consumableBuilder.addEffects(paperEffects);
+            }
+
+            itemStack.setData(DataComponentTypes.CONSUMABLE, consumableBuilder.build());
+        }
+
         return itemStack;
     }
 

@@ -13,7 +13,6 @@ import me.msicraft.consumefood2.Utils.MigrationUtil;
 import me.msicraft.consumefood2.VanillaFood.Menu.VanillaFoodEditGui;
 import me.msicraft.consumefood2.VanillaFood.VanillaFoodManager;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -22,6 +21,8 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 
 import java.util.Set;
 
@@ -45,7 +46,7 @@ public class MainCommand implements CommandExecutor {
                             return false;
                         }
                         plugin.reloadVariables();
-                        sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.GREEN + "Config files reloaded");
+                        sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("Config files reloaded", NamedTextColor.GREEN)));
                         return true;
                     }
                     case "update-inventory" -> { //consumefood2 update-inventory <player>
@@ -61,20 +62,20 @@ public class MainCommand implements CommandExecutor {
                                         plugin.getCustomFoodManager().updateInventory(player);
                                     }
                                 }
-                                sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.GREEN + "All players inventories have been updated");
+                                sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("All players inventories have been updated", NamedTextColor.GREEN)));
                                 return false;
                             }
                             plugin.getCustomFoodManager().updateInventory(target);
-                            sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.GREEN + "Target player inventory has been updated");
+                            sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("Target player inventory has been updated", NamedTextColor.GREEN)));
                             return true;
                         } catch (ArrayIndexOutOfBoundsException e) {
-                            sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "/consumefood2 update-inventory [<player>]");
+                            sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("/consumefood2 update-inventory [<player>]", NamedTextColor.RED)));
                             return false;
                         }
                     }
                     case "migrate" -> { //consumefood2 migrate <customfood, vanillafood> [internalName, material]
                         if (Bukkit.getPluginManager().getPlugin("ConsumeFood") == null) {
-                            sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "ConsumeFood plugin not found");
+                            sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("ConsumeFood plugin not found", NamedTextColor.RED)));
                             return false;
                         }
                         String var2 = args[1];
@@ -104,10 +105,12 @@ public class MainCommand implements CommandExecutor {
                                                 }
                                             }
                                             customFoodManager.getCustomFoodData().saveConfig();
-                                            sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.AQUA + count + ChatColor.GREEN + " customfoods were successfully migrated");
+                                            sender.sendMessage(ConsumeFood2.PREFIX
+                                                    .append(Component.text(count, NamedTextColor.AQUA))
+                                                    .append(Component.text(" customfoods were successfully migrated", NamedTextColor.GREEN)));
                                             return true;
                                         } else {
-                                            sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "Fail migration");
+                                            sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("Fail migration", NamedTextColor.RED)));
                                             return false;
                                         }
                                     } else {
@@ -116,10 +119,12 @@ public class MainCommand implements CommandExecutor {
                                             CustomFood customFood = MigrationUtil.getOldCustomFoodMigration(customFoodConfig, internalName);
                                             customFoodManager.saveCustomFoodToConfig(customFood, true);
                                             customFoodManager.registerCustomFood(customFood);
-                                            sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.GREEN + "Migrated successfully: " + ChatColor.AQUA + internalName);
+                                            sender.sendMessage(ConsumeFood2.PREFIX
+                                                    .append(Component.text("Migrated successfully: ", NamedTextColor.GREEN))
+                                                    .append(Component.text(internalName, NamedTextColor.AQUA)));
                                             return true;
                                         } catch (ArrayIndexOutOfBoundsException | MigrationFail ex) {
-                                            sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "/consumefood2 migrate customfood [all-customfood, internalName]");
+                                            sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("/consumefood2 migrate customfood [all-customfood, internalName]", NamedTextColor.RED)));
                                             return false;
                                         }
                                     }
@@ -150,10 +155,12 @@ public class MainCommand implements CommandExecutor {
                                                 }
                                             }
                                             vanillaFoodManager.getVanillaFoodData().saveConfig();
-                                            sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.AQUA + count + ChatColor.GREEN + " vanillafoods were successfully migrated");
+                                            sender.sendMessage(ConsumeFood2.PREFIX
+                                                    .append(Component.text(count, NamedTextColor.AQUA))
+                                                    .append(Component.text(" vanillafoods were successfully migrated", NamedTextColor.GREEN)));
                                             return true;
                                         } else {
-                                            sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "Fail migration");
+                                            sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("Fail migration", NamedTextColor.RED)));
                                             return false;
                                         }
                                     } else {
@@ -161,10 +168,12 @@ public class MainCommand implements CommandExecutor {
                                             Material material = Material.getMaterial(args[2].toUpperCase());
                                             VanillaFood vanillaFood = MigrationUtil.oldVanillaFoodMigration(oldConfig, material);
                                             vanillaFoodManager.saveVanillaFoodToConfig(vanillaFood, true);
-                                            sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.GREEN + "Migrated successfully: " + ChatColor.AQUA + material.name());
+                                            sender.sendMessage(ConsumeFood2.PREFIX
+                                                    .append(Component.text("Migrated successfully: ", NamedTextColor.GREEN))
+                                                    .append(Component.text(material.name(), NamedTextColor.AQUA)));
                                             return true;
                                         } catch (ArrayIndexOutOfBoundsException ea) {
-                                            sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "/consumefood2 migrate vanillafood <VanillaFood_Material>");
+                                            sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("/consumefood2 migrate vanillafood <VanillaFood_Material>", NamedTextColor.RED)));
                                             return false;
                                         } catch (MigrationFail eb) {
                                             eb.printStackTrace();
@@ -204,22 +213,22 @@ public class MainCommand implements CommandExecutor {
                                             if (sender instanceof Player p) {
                                                 target = p;
                                             } else {
-                                                sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "Target not found!");
+                                                sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("Target not found!", NamedTextColor.RED)));
                                                 return false;
                                             }
                                         }
                                         VanillaFood vanillaFood = plugin.getVanillaFoodManager().getVanillaFood(Material.getMaterial(materialS));
                                         if (vanillaFood == null) {
-                                            sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "material does not exist");
+                                            sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("material does not exist", NamedTextColor.RED)));
                                             return false;
                                         }
                                         ItemStack vanillaFoodStack = new ItemStack(vanillaFood.getMaterial());
-                                        for (int i = 0; i<amount; i++) {
+                                        for (int i = 0; i < amount; i++) {
                                             target.getInventory().addItem(vanillaFoodStack);
                                         }
                                         return true;
                                     } catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
-                                        sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "/consumefood2 vanillafood give <internalname> <amount> <targetPlayer>");
+                                        sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("/consumefood2 vanillafood give <internalname> <amount> <targetPlayer>", NamedTextColor.RED)));
                                         return false;
                                     }
                                 }
@@ -255,22 +264,22 @@ public class MainCommand implements CommandExecutor {
                                             if (sender instanceof Player p) {
                                                 target = p;
                                             } else {
-                                                sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "Target not found!");
+                                                sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("Target not found!", NamedTextColor.RED)));
                                                 return false;
                                             }
                                         }
                                         CustomFood customFood = plugin.getCustomFoodManager().getCustomFood(internalName);
                                         if (customFood == null) {
-                                            sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "Internalname does not exist");
+                                            sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("Internalname does not exist", NamedTextColor.RED)));
                                             return false;
                                         }
                                         ItemStack customFoodStack = plugin.getCustomFoodManager().createItemStack(customFood);
-                                        for (int i = 0; i<amount; i++) {
+                                        for (int i = 0; i < amount; i++) {
                                             target.getInventory().addItem(customFoodStack);
                                         }
                                         return true;
                                     } catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
-                                        sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "/consumefood2 customfood give <internalname> <amount> <targetPlayer>");
+                                        sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("/consumefood2 customfood give <internalname> <amount> <targetPlayer>", NamedTextColor.RED)));
                                         return false;
                                     }
                                 }
@@ -282,7 +291,7 @@ public class MainCommand implements CommandExecutor {
                                     try {
                                         String internalName = args[2];
                                         if (plugin.getCustomFoodManager().getAllInternalNames().contains(internalName)) {
-                                            sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "This internalname already exists");
+                                            sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("This internalname already exists", NamedTextColor.RED)));
                                             return false;
                                         }
                                         CustomFood customFood = new CustomFood(Material.APPLE, internalName);
@@ -290,10 +299,10 @@ public class MainCommand implements CommandExecutor {
                                         plugin.getCustomFoodManager().getCustomFoodData().getConfig().set(path + ".Material", "APPLE");
                                         plugin.getCustomFoodManager().getCustomFoodData().saveConfig();
                                         plugin.getCustomFoodManager().registerCustomFood(customFood);
-                                        sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.GREEN + "Created CustomFood");
+                                        sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("Created CustomFood", NamedTextColor.GREEN)));
                                         return true;
                                     } catch (ArrayIndexOutOfBoundsException e) {
-                                        sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "/consumefood2 customfood create <internalname>");
+                                        sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("/consumefood2 customfood create <internalname>", NamedTextColor.RED)));
                                         return false;
                                     }
                                 }
@@ -305,17 +314,17 @@ public class MainCommand implements CommandExecutor {
                                     try {
                                         String internalName = args[2];
                                         if (!plugin.getCustomFoodManager().getAllInternalNames().contains(internalName)) {
-                                            sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "Internalname does not exist");
+                                            sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("Internalname does not exist", NamedTextColor.RED)));
                                             return false;
                                         }
                                         String path = "Food." + internalName;
                                         plugin.getCustomFoodManager().getCustomFoodData().getConfig().set(path, null);
                                         plugin.getCustomFoodManager().getCustomFoodData().saveConfig();
                                         plugin.getCustomFoodManager().unregisterCustomFood(internalName);
-                                        sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "CustomFood has been deleted");
+                                        sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("CustomFood has been deleted", NamedTextColor.RED)));
                                         return true;
                                     } catch (ArrayIndexOutOfBoundsException e) {
-                                        sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "/consumefood2 customfood delete <internalname>");
+                                        sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("/consumefood2 customfood delete <internalname>", NamedTextColor.RED)));
                                         return false;
                                     }
                                 }
@@ -324,7 +333,7 @@ public class MainCommand implements CommandExecutor {
                     }
                     case "foodlevel" -> { //consumefood2 foodlevel <get, set, add> <amount> <targetPlayer>
                         String var2 = args[1];
-                        if (var2!= null) {
+                        if (var2 != null) {
                             switch (var2) {
                                 case "get" -> { //consumefood2 foodlevel get <targetPlayer>
                                     if (!sender.hasPermission("consumefood2.command.foodlevel.get")) {
@@ -338,15 +347,15 @@ public class MainCommand implements CommandExecutor {
                                             if (sender instanceof Player p) {
                                                 target = p;
                                             } else {
-                                                sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "Target not found!");
+                                                sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("Target not found!", NamedTextColor.RED)));
                                                 return false;
                                             }
                                         }
-                                        sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.YELLOW + "Player: " + target.getName());
-                                        sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.YELLOW + "FoodLevel: " + target.getFoodLevel());
+                                        sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("Player: " + target.getName(), NamedTextColor.YELLOW)));
+                                        sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("FoodLevel: " + target.getFoodLevel(), NamedTextColor.YELLOW)));
                                         return true;
                                     } catch (ArrayIndexOutOfBoundsException e) {
-                                        sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "/consumefood2 foodlevel get <targetPlayer>");
+                                        sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("/consumefood2 foodlevel get <targetPlayer>", NamedTextColor.RED)));
                                         return false;
                                     }
                                 }
@@ -363,16 +372,16 @@ public class MainCommand implements CommandExecutor {
                                             if (sender instanceof Player p) {
                                                 target = p;
                                             } else {
-                                                sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "Target not found!");
+                                                sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("Target not found!", NamedTextColor.RED)));
                                                 return false;
                                             }
                                         }
                                         target.setFoodLevel(amount);
-                                        sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.GREEN + "Player: " + target.getName());
-                                        sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.GREEN + "FoodLevel set to " + amount);
+                                        sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("Player: " + target.getName(), NamedTextColor.GREEN)));
+                                        sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("FoodLevel set to " + amount, NamedTextColor.GREEN)));
                                         return true;
                                     } catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
-                                        sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "/consumefood2 foodlevel set <amount> <targetPlayer>");
+                                        sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("/consumefood2 foodlevel set <amount> <targetPlayer>", NamedTextColor.RED)));
                                         return false;
                                     }
                                 }
@@ -389,17 +398,17 @@ public class MainCommand implements CommandExecutor {
                                             if (sender instanceof Player p) {
                                                 target = p;
                                             } else {
-                                                sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "Target not found!");
+                                                sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("Target not found!", NamedTextColor.RED)));
                                                 return false;
                                             }
                                         }
                                         int cal = target.getFoodLevel() + amount;
                                         target.setFoodLevel(cal);
-                                        sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.GREEN + "Player: " + target.getName());
-                                        sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.GREEN + "FoodLevel set to " + cal);
+                                        sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("Player: " + target.getName(), NamedTextColor.GREEN)));
+                                        sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("FoodLevel set to " + cal, NamedTextColor.GREEN)));
                                         return true;
                                     } catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
-                                        sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "/consumefood2 foodlevel add <amount> <targetPlayer>");
+                                        sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("/consumefood2 foodlevel add <amount> <targetPlayer>", NamedTextColor.RED)));
                                         return false;
                                     }
                                 }
@@ -408,7 +417,7 @@ public class MainCommand implements CommandExecutor {
                     }
                     case "saturation" -> { //consumefood2 saturation <get, set, add> <amount> <targetPlayer>
                         String var2 = args[1];
-                        if (var2!= null) {
+                        if (var2 != null) {
                             switch (var2) {
                                 case "get" -> { //consumefood2 saturation get <targetPlayer>
                                     if (!sender.hasPermission("consumefood2.command.saturation.get")) {
@@ -422,15 +431,15 @@ public class MainCommand implements CommandExecutor {
                                             if (sender instanceof Player p) {
                                                 target = p;
                                             } else {
-                                                sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "Target not found!");
+                                                sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("Target not found!", NamedTextColor.RED)));
                                                 return false;
                                             }
                                         }
-                                        sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.YELLOW + "Player: " + target.getName());
-                                        sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.YELLOW + "Saturation: " + target.getSaturation());
+                                        sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("Player: " + target.getName(), NamedTextColor.YELLOW)));
+                                        sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("Saturation: " + target.getSaturation(), NamedTextColor.YELLOW)));
                                         return true;
                                     } catch (ArrayIndexOutOfBoundsException e) {
-                                        sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "/consumefood2 saturation get <targetPlayer>");
+                                        sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("/consumefood2 saturation get <targetPlayer>", NamedTextColor.RED)));
                                         return false;
                                     }
                                 }
@@ -447,16 +456,16 @@ public class MainCommand implements CommandExecutor {
                                             if (sender instanceof Player p) {
                                                 target = p;
                                             } else {
-                                                sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "Target not found!");
+                                                sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("Target not found!", NamedTextColor.RED)));
                                                 return false;
                                             }
                                         }
                                         target.setSaturation(amount);
-                                        sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.GREEN + "Player: " + target.getName());
-                                        sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.GREEN + "Saturation set to " + amount);
+                                        sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("Player: " + target.getName(), NamedTextColor.GREEN)));
+                                        sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("Saturation set to " + amount, NamedTextColor.GREEN)));
                                         return true;
                                     } catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
-                                        sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "/consumefood2 saturation set <amount> <targetPlayer>");
+                                        sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("/consumefood2 saturation set <amount> <targetPlayer>", NamedTextColor.RED)));
                                         return false;
                                     }
                                 }
@@ -473,17 +482,17 @@ public class MainCommand implements CommandExecutor {
                                             if (sender instanceof Player p) {
                                                 target = p;
                                             } else {
-                                                sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "Target not found!");
+                                                sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("Target not found!", NamedTextColor.RED)));
                                                 return false;
                                             }
                                         }
                                         float cal = target.getSaturation() + amount;
                                         target.setSaturation(cal);
-                                        sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.GREEN + "Player: " + target.getName());
-                                        sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.GREEN + "Saturation set to " + cal);
+                                        sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("Player: " + target.getName(), NamedTextColor.GREEN)));
+                                        sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("Saturation set to " + cal, NamedTextColor.GREEN)));
                                         return true;
                                     } catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
-                                        sender.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "/consumefood2 saturation add <amount> <targetPlayer>");
+                                        sender.sendMessage(ConsumeFood2.PREFIX.append(Component.text("/consumefood2 saturation add <amount> <targetPlayer>", NamedTextColor.RED)));
                                         return false;
                                     }
                                 }

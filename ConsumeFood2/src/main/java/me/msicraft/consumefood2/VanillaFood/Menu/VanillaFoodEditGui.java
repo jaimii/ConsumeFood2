@@ -8,7 +8,6 @@ import me.msicraft.consumefood2.PlayerData.Data.PlayerData;
 import me.msicraft.consumefood2.Utils.GuiUtil;
 import me.msicraft.consumefood2.VanillaFood.VanillaFoodManager;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
@@ -18,6 +17,9 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -74,9 +76,9 @@ public class VanillaFoodEditGui extends CustomGui {
         itemStack = GuiUtil.createItemStack(Material.BOOK, pageS, GuiUtil.EMPTY_LORE, -1, selectKey, "Page");
         gui.setItem(49, itemStack);
 
-        List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.YELLOW + "Left Click: edit");
-        lore.add(ChatColor.YELLOW + "Right Click: get item");
+        List<Component> lore = new ArrayList<>();
+        lore.add(Component.text("Left Click: edit", NamedTextColor.YELLOW));
+        lore.add(Component.text("Right Click: get item", NamedTextColor.YELLOW));
         for (int i = lastCount; i < maxSize && i < lastCount + 45; i++) {
             Material material = materials.get(i);
             VanillaFood vanillaFood = vanillaFoodManager.getVanillaFood(material);
@@ -84,7 +86,9 @@ public class VanillaFoodEditGui extends CustomGui {
                 itemStack = new ItemStack(vanillaFood.getMaterial());
                 ItemMeta itemMeta = itemStack.getItemMeta();
                 PersistentDataContainer dataContainer = itemMeta.getPersistentDataContainer();
-                itemMeta.setLore(lore);
+
+                itemMeta.lore(lore);
+
                 dataContainer.set(selectKey, PersistentDataType.STRING, material.name());
 
                 itemStack.setItemMeta(itemMeta);
@@ -104,7 +108,7 @@ public class VanillaFoodEditGui extends CustomGui {
         VanillaFoodManager vanillaFoodManager = plugin.getVanillaFoodManager();
         PlayerData playerData = plugin.getPlayerDataManager().getPlayerData(player);
         if (!playerData.hasTempData("VanillaFood_Edit_Key")) {
-            player.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "material does not exist");
+            player.sendMessage(ConsumeFood2.PREFIX.append(Component.text("material does not exist", NamedTextColor.RED)));
             player.closeInventory();
             return;
         }
@@ -112,18 +116,20 @@ public class VanillaFoodEditGui extends CustomGui {
         Material material = Material.getMaterial(materialS);
         VanillaFood vanillaFood = vanillaFoodManager.getVanillaFood(material);
         ItemStack itemStack;
-        itemStack = GuiUtil.createItemStack(Material.BARRIER, ChatColor.WHITE + "Back", GuiUtil.EMPTY_LORE, -1,
+        itemStack = GuiUtil.createItemStack(Material.BARRIER, "&fBack", GuiUtil.EMPTY_LORE, -1,
                 editKey, "Back");
         gui.setItem(0, itemStack);
 
-        List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.YELLOW + "Right Click: get item");
-        lore.add("");
+        List<Component> lore = new ArrayList<>();
+        lore.add(Component.text("Right Click: get item", NamedTextColor.YELLOW));
+        lore.add(Component.empty());
         itemStack = new ItemStack(vanillaFood.getMaterial());
         ItemMeta tItemMeta = itemStack.getItemMeta();
         PersistentDataContainer tDataContainer = tItemMeta.getPersistentDataContainer();
         tDataContainer.set(editKey, PersistentDataType.STRING, "Edit_Item");
-        tItemMeta.setLore(lore);
+
+        tItemMeta.lore(lore);
+
         itemStack.setItemMeta(tItemMeta);
         gui.setItem(4, itemStack);
 
@@ -136,52 +142,53 @@ public class VanillaFoodEditGui extends CustomGui {
             }
             lore.clear();
             ItemMeta itemMeta;
-            lore.add(ChatColor.YELLOW + "Left Click: edit value (change value)");
-            lore.add(ChatColor.YELLOW + "Right Click: reset");
-            lore.add("");
-            lore.add(ChatColor.GRAY + "Set " + options.getDisplayName());
+            lore.add(Component.text("Left Click: edit value (change value)", NamedTextColor.YELLOW));
+            lore.add(Component.text("Right Click: reset", NamedTextColor.YELLOW));
+            lore.add(Component.empty());
+            lore.add(Component.text("Set " + options.getDisplayName(), NamedTextColor.GRAY));
             for (String s : options.getDescription()) {
-                lore.add(ChatColor.WHITE + s);
+                lore.add(Component.text(s, NamedTextColor.WHITE));
             }
-            lore.add("");
+            lore.add(Component.empty());
             switch (options) {
                 case FOOD_LEVEL -> {
                     itemStack = new ItemStack(Material.PORKCHOP);
-                    lore.add(ChatColor.GRAY + "Current Food Level: " + vanillaFood.getOptionValue(Food.Options.FOOD_LEVEL));
+                    lore.add(Component.text("Current Food Level: " + vanillaFood.getOptionValue(Food.Options.FOOD_LEVEL), NamedTextColor.GRAY));
                 }
                 case SATURATION -> {
                     itemStack = new ItemStack(Material.COOKED_PORKCHOP);
-                    lore.add(ChatColor.GRAY + "Current Saturation: " + vanillaFood.getOptionValue(Food.Options.SATURATION));
+                    lore.add(Component.text("Current Saturation: " + vanillaFood.getOptionValue(Food.Options.SATURATION), NamedTextColor.GRAY));
                 }
                 case COOLDOWN -> {
                     itemStack = new ItemStack(Material.COMPASS);
-                    lore.add(ChatColor.GRAY + "Current Cooldown: " + vanillaFood.getOptionValue(Food.Options.COOLDOWN));
+                    lore.add(Component.text("Current Cooldown: " + vanillaFood.getOptionValue(Food.Options.COOLDOWN), NamedTextColor.GRAY));
                 }
                 case INSTANT_EAT -> {
                     itemStack = new ItemStack(Material.CAKE);
-                    lore.add(ChatColor.GRAY + "Current Instant Eat: " + vanillaFood.getOptionValue(Food.Options.INSTANT_EAT));
+                    lore.add(Component.text("Current Instant Eat: " + vanillaFood.getOptionValue(Food.Options.INSTANT_EAT), NamedTextColor.GRAY));
                 }
                 case POTION_EFFECT -> {
                     itemStack = new ItemStack(Material.POTION);
-                    lore.add(ChatColor.GRAY + "Format: <potionType>:<level>:<duration>:<chance>");
-                    lore.add(ChatColor.GRAY + "Current Potion Effect: ");
+                    lore.add(Component.text("Format: <potionType>:<level>:<duration>:<chance>", NamedTextColor.GRAY));
+                    lore.add(Component.text("Current Potion Effect: ", NamedTextColor.GRAY));
                     vanillaFood.getPotionEffects().forEach(foodPotionEffect -> {
-                        lore.add(ChatColor.GRAY + foodPotionEffect.toFormat());
+                        lore.add(Component.text(foodPotionEffect.toFormat(), NamedTextColor.GRAY));
                     });
                 }
                 case COMMAND -> {
                     itemStack = new ItemStack(Material.COMMAND_BLOCK);
-                    lore.add(ChatColor.GRAY + "Format: <executeType>:<command>");
-                    lore.add(ChatColor.GRAY + "Current Command: ");
+                    lore.add(Component.text("Format: <executeType>:<command>", NamedTextColor.GRAY));
+                    lore.add(Component.text("Current Command: ", NamedTextColor.GRAY));
                     vanillaFood.getCommands().forEach(foodCommand -> {
-                        lore.add(ChatColor.GRAY + foodCommand.toFormat());
+                        lore.add(Component.text(foodCommand.toFormat(), NamedTextColor.GRAY));
                     });
                 }
             }
             itemMeta = itemStack.getItemMeta();
             PersistentDataContainer dataContainer = itemMeta.getPersistentDataContainer();
-            itemMeta.setDisplayName(options.getDisplayName());
-            itemMeta.setLore(lore);
+            itemMeta.displayName(LegacyComponentSerializer.legacyAmpersand().deserialize(options.getDisplayName()));
+            itemMeta.lore(lore);
+
             dataContainer.set(editKey,  PersistentDataType.STRING, options.name().toUpperCase());
             itemStack.setItemMeta(itemMeta);
 

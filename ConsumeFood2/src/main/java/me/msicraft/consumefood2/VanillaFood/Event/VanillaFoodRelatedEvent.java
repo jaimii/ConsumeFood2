@@ -15,6 +15,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.EquipmentSlot;
@@ -35,6 +38,25 @@ public class VanillaFoodRelatedEvent implements Listener {
     public VanillaFoodRelatedEvent(ConsumeFood2 plugin) {
         this.plugin = plugin;
         this.vanillaFoodManager = plugin.getVanillaFoodManager();
+    }
+
+    @EventHandler
+    public void onQuit(PlayerQuitEvent e) {
+        UUID uuid = e.getPlayer().getUniqueId();
+        globalCooldownMap.remove(uuid);
+        personalCooldownMap.remove(uuid);
+    }
+
+    @EventHandler
+    public void onHeld(PlayerItemHeldEvent e) {
+        vanillaFoodManager.updateInventory(e.getPlayer());
+    }
+
+    @EventHandler
+    public void onInventoryClick(InventoryClickEvent e) {
+        if (e.getWhoClicked() instanceof Player player) {
+            Bukkit.getScheduler().runTask(plugin, () -> vanillaFoodManager.updateInventory(player));
+        }
     }
 
     @EventHandler
@@ -88,7 +110,7 @@ public class VanillaFoodRelatedEvent implements Listener {
                             message = message.replaceAll("%vanillafood_name%", (String) vanillaFood.getOptionValue(Food.Options.DISPLAYNAME));
                             message = message.replaceAll("%vanillafood_global_timeleft%", String.valueOf(left));
                             message = PlaceholderAPI.setPlaceholders(player, message);
-                            player.sendMessage(message);
+                            player.sendMessage(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(message));
                         }
 
                         Bukkit.getPluginManager().callEvent(new VanillaFoodConsumeEvent(false, left,
@@ -109,7 +131,7 @@ public class VanillaFoodRelatedEvent implements Listener {
                         message = message.replaceAll("%vanillafood_name%", (String) vanillaFood.getOptionValue(Food.Options.DISPLAYNAME));
                         message = message.replaceAll("%vanillafood_personal_timeleft%", String.valueOf(left));
                         message = PlaceholderAPI.setPlaceholders(player, message);
-                        player.sendMessage(message);
+                        player.sendMessage(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(message));
                     }
 
                     Bukkit.getPluginManager().callEvent(new VanillaFoodConsumeEvent(false, left,

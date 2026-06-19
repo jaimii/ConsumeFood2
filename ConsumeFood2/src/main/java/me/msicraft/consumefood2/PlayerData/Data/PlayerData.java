@@ -10,6 +10,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -68,7 +70,7 @@ public class PlayerData {
                 }
                 default -> {
                     customGui = new CustomFoodEditGui(ConsumeFood2.getPlugin());
-                    Bukkit.getConsoleSender().sendMessage(ConsumeFood2.PREFIX + ChatColor.YELLOW + "Invalid Menu Type: " + guiType.name());
+                    Bukkit.getConsoleSender().sendMessage(ConsumeFood2.PREFIX.append(Component.text("Invalid Menu Type: " + guiType.name(), NamedTextColor.YELLOW)));
                 }
             }
         }

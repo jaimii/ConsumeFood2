@@ -13,12 +13,13 @@ import me.msicraft.consumefood2.VanillaFood.Event.VanillaFoodRelatedEvent;
 import me.msicraft.consumefood2.VanillaFood.Menu.Event.VanillaFoodEditEvent;
 import me.msicraft.consumefood2.VanillaFood.VanillaFoodManager;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,10 +34,10 @@ public final class ConsumeFood2 extends JavaPlugin {
         return plugin;
     }
 
-    public static final String PREFIX = ChatColor.GREEN + "[ConsumeFood2] ";
+    public static final Component PREFIX = Component.text("[ConsumeFood2] ", NamedTextColor.GREEN);
     private boolean usePlaceHolderAPI = false;
     private boolean useFoodComponent = false;
-    private int bukkitVersion = 1161;
+    private int bukkitVersion = 11601;
 
     private MessageData messageData;
 
@@ -51,33 +52,29 @@ public final class ConsumeFood2 extends JavaPlugin {
 
         if (!NBT.preloadApi()) {
             getLogger().warning("NBT-API wasn't initialized properly, disabling the plugin");
-            getPluginLoader().disablePlugin(this);
+            Bukkit.getPluginManager().disablePlugin(this); // <-- Updated here
             return;
         }
 
         if (getConfig().getBoolean("Compatibility.PlaceholderAPI")) {
             if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
                 usePlaceHolderAPI = true;
-                Bukkit.getConsoleSender().sendMessage(PREFIX + "Detect PlaceholderAPI plugin");
+                Bukkit.getConsoleSender().sendMessage(PREFIX.append(Component.text("Detect PlaceholderAPI plugin", NamedTextColor.GRAY)));
             }
         }
 
         BukkitChecker bukkitChecker = new BukkitChecker(this, 119951);
         String bukkitVersionS = bukkitChecker.getBukkitVersion();
         if (bukkitVersionS == null) {
-            getServer().getConsoleSender().sendMessage(PREFIX + ChatColor.RED + "Bukkit version not found");
+            getServer().getConsoleSender().sendMessage(PREFIX.append(Component.text("Bukkit version not found", NamedTextColor.RED)));
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         } else {
-            try {
-                bukkitVersion = Integer.parseInt(bukkitVersionS.replaceAll("\\.", ""));
-                if (bukkitVersion >= 1205) {
-                    useFoodComponent = true;
-                }
-            } catch (NumberFormatException e) {
-                e.printStackTrace();
+            bukkitVersion = bukkitChecker.parseVersion(bukkitVersionS);
+            if (bukkitVersion >= 12005) { // 1.20.5 evaluates as 12005
+                useFoodComponent = true;
             }
-            getServer().getConsoleSender().sendMessage(PREFIX + ChatColor.GREEN + "Bukkit Version: " + bukkitVersion);
+            getServer().getConsoleSender().sendMessage(PREFIX.append(Component.text("Bukkit Version: " + bukkitVersionS + " (" + bukkitVersion + ")", NamedTextColor.GREEN)));
         }
 
         messageData = new MessageData(this);
@@ -88,12 +85,12 @@ public final class ConsumeFood2 extends JavaPlugin {
 
         final int configVersion = plugin.getConfig().contains("config-version", true) ? plugin.getConfig().getInt("config-version") : -1;
         if (configVersion != 1) {
-            getServer().getConsoleSender().sendMessage(PREFIX + ChatColor.RED + "You are using the old config");
-            getServer().getConsoleSender().sendMessage(PREFIX + ChatColor.RED + "Created the latest config.yml after replacing the old config.yml with config_old.yml");
+            getServer().getConsoleSender().sendMessage(PREFIX.append(Component.text("You are using the old config", NamedTextColor.RED)));
+            getServer().getConsoleSender().sendMessage(PREFIX.append(Component.text("Created the latest config.yml after replacing the old config.yml with config_old.yml", NamedTextColor.RED)));
             replaceConfig();
             createConfigFile();
         } else {
-            getServer().getConsoleSender().sendMessage(PREFIX + "You are using the latest version of config.yml");
+            getServer().getConsoleSender().sendMessage(PREFIX.append(Component.text("You are using the latest version of config.yml", NamedTextColor.GRAY)));
         }
 
         eventRegister();
@@ -101,7 +98,7 @@ public final class ConsumeFood2 extends JavaPlugin {
 
         reloadVariables();
 
-        getServer().getConsoleSender().sendMessage(PREFIX + "Plugin Enable");
+        getServer().getConsoleSender().sendMessage(PREFIX.append(Component.text("Plugin Enable", NamedTextColor.GREEN)));
 
         bukkitChecker.getPluginUpdateCheck(version -> {
             String versionS = this.getDescription().getVersion();
@@ -112,7 +109,6 @@ public final class ConsumeFood2 extends JavaPlugin {
                 getLogger().info("There is not a new update available.");
             } else {
                 getLogger().info("A new version of the plugin is available: (v." + version + "), Current: v." + versionS);
-                //getLogger().info("If the current version is higher, it is the development version.");
             }
         });
         Metrics metrics = new Metrics(this, 23298);
@@ -126,7 +122,7 @@ public final class ConsumeFood2 extends JavaPlugin {
 
         playerDataManager.saveAll();
 
-        getServer().getConsoleSender().sendMessage(PREFIX + ChatColor.RED + "Plugin Disable");
+        getServer().getConsoleSender().sendMessage(PREFIX.append(Component.text("Plugin Disable", NamedTextColor.RED)));
     }
 
     private void eventRegister() {
@@ -173,7 +169,6 @@ public final class ConsumeFood2 extends JavaPlugin {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
         File config_old = new File(getDataFolder(), "config_old-" + dateFormat.format(date) + ".yml");
         file.renameTo(config_old);
-        //getServer().getConsoleSender().sendMessage(PREFIX + "Plugin replaced the old config.yml with config_old.yml and created a new config.yml");
     }
 
     public boolean isUseFoodComponent() {

@@ -8,11 +8,12 @@ import me.msicraft.API.Food.*;
 import me.msicraft.consumefood.File.CustomFoodConfig;
 import me.msicraft.consumefood2.ConsumeFood2;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.enchantments.Enchantment;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 
 import java.util.UUID;
 
@@ -144,14 +145,14 @@ public class MigrationUtil {
                             try {
                                 String[] a = format.split(":");
                                 String enchantS = a[0];
-                                Enchantment enchantment = Enchantment.getByKey(NamespacedKey.minecraft(enchantS));
+                                Enchantment enchantment = org.bukkit.Registry.ENCHANTMENT.get(NamespacedKey.minecraft(enchantS));
                                 int level = Integer.parseInt(a[1]);
                                 customFood.addEnchantment(enchantment, level);
                             } catch (ArrayIndexOutOfBoundsException | NumberFormatException e) {
-                                Bukkit.getConsoleSender().sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "=====Migrate Error: Invalid Enchant format=====");
-                                Bukkit.getConsoleSender().sendMessage(ConsumeFood2.PREFIX + ChatColor.YELLOW + "InternalName: " + internalName);
-                                Bukkit.getConsoleSender().sendMessage(ConsumeFood2.PREFIX + ChatColor.YELLOW + "Invalid line: " + format);
-                                Bukkit.getConsoleSender().sendMessage(ConsumeFood2.PREFIX + ChatColor.YELLOW + "Format: <enchant>:<level>");
+                                Bukkit.getConsoleSender().sendMessage(ConsumeFood2.PREFIX.append(Component.text("=====Migrate Error: Invalid Enchant format=====", NamedTextColor.RED)));
+                                Bukkit.getConsoleSender().sendMessage(ConsumeFood2.PREFIX.append(Component.text("InternalName: " + internalName, NamedTextColor.YELLOW)));
+                                Bukkit.getConsoleSender().sendMessage(ConsumeFood2.PREFIX.append(Component.text("Invalid line: " + format, NamedTextColor.YELLOW)));
+                                Bukkit.getConsoleSender().sendMessage(ConsumeFood2.PREFIX.append(Component.text("Format: <enchant>:<level>", NamedTextColor.YELLOW)));
                             }
                         });
                     }

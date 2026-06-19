@@ -10,7 +10,6 @@ import me.msicraft.consumefood2.CustomFood.CustomFoodManager;
 import me.msicraft.consumefood2.CustomFood.Menu.CustomFoodEditGui;
 import me.msicraft.consumefood2.PlayerData.Data.PlayerData;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
@@ -26,6 +25,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffectType;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 
 import java.util.List;
 import java.util.regex.PatternSyntaxException;
@@ -47,7 +48,7 @@ public class CustomFoodEditEvent implements Listener {
         if (playerData.hasTempData("CustomFood_ChatEdit")) {
             e.setCancelled(true);
             if (!playerData.hasTempData("CustomFood_Edit_Key")) {
-                player.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "internalName does not exist");
+                player.sendMessage(Component.text("[ConsumeFood2] internalName does not exist", NamedTextColor.RED));
                 playerData.removeTempData("CustomFood_ChatEdit");
                 Bukkit.getScheduler().runTask(plugin, () -> {
                     customFoodManager.openCustomFoodEditGui(CustomFoodEditGui.Type.SELECT, player);
@@ -71,7 +72,7 @@ public class CustomFoodEditEvent implements Listener {
                 case MATERIAL -> {
                     Material material = Material.getMaterial(message.toUpperCase());
                     if (material == null) {
-                        player.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "Invalid Material: " + message);
+                        player.sendMessage(Component.text("[ConsumeFood2] Invalid Material: " + message, NamedTextColor.RED));
                         save = false;
                     } else {
                         customFood.setOption(Food.Options.MATERIAL, material);
@@ -102,13 +103,13 @@ public class CustomFoodEditEvent implements Listener {
                             customFood.addPotionEffect(foodPotionEffect);
                         } else {
                             save = false;
-                            player.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "=====Unknown PotionEffectType=====");
-                            player.sendMessage(ConsumeFood2.PREFIX + ChatColor.YELLOW + "PotionEffectType: " + split[0]);
+                            player.sendMessage(Component.text("[ConsumeFood2] =====Unknown PotionEffectType=====", NamedTextColor.RED));
+                            player.sendMessage(Component.text("[ConsumeFood2] PotionEffectType: " + split[0], NamedTextColor.YELLOW));
                         }
                     } catch (NullPointerException | PatternSyntaxException | ArrayIndexOutOfBoundsException ex) {
                         save = false;
-                        player.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "=====Invalid PotionEffect Format=====");
-                        player.sendMessage(ConsumeFood2.PREFIX + ChatColor.YELLOW + "Format: <potionType>:<level>:<duration>:<chance>");
+                        player.sendMessage(Component.text("[ConsumeFood2] =====Invalid PotionEffect Format=====", NamedTextColor.RED));
+                        player.sendMessage(Component.text("[ConsumeFood2] Format: <potionType>:<level>:<duration>:<chance>", NamedTextColor.YELLOW));
                     }
                 }
                 case COMMAND -> {
@@ -125,8 +126,8 @@ public class CustomFoodEditEvent implements Listener {
                         customFood.addCommand(foodCommand);
                     } catch (ArrayIndexOutOfBoundsException | IllegalArgumentException ex) {
                         save = false;
-                        player.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "=====Invalid Command Format=====");
-                        player.sendMessage(ConsumeFood2.PREFIX + ChatColor.YELLOW + "Format: <executeType>:<command>");
+                        player.sendMessage(Component.text("[ConsumeFood2] =====Invalid Command Format=====", NamedTextColor.RED));
+                        player.sendMessage(Component.text("[ConsumeFood2] Format: <executeType>:<command>", NamedTextColor.YELLOW));
                     }
                 }
                 case FOOD_LEVEL -> {
@@ -145,13 +146,13 @@ public class CustomFoodEditEvent implements Listener {
                     try {
                         String[] a = message.split(":");
                         String enchantS = a[0];
-                        Enchantment enchantment = Enchantment.getByKey(NamespacedKey.minecraft(enchantS));
+                        Enchantment enchantment = org.bukkit.Registry.ENCHANTMENT.get(NamespacedKey.minecraft(enchantS));
                         int level = Integer.parseInt(a[1]);
                         customFood.addEnchantment(enchantment, level);
                     } catch (ArrayIndexOutOfBoundsException | NumberFormatException ex) {
                         save = false;
-                        player.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "=====Invalid Enchant format=====");
-                        player.sendMessage(ConsumeFood2.PREFIX + ChatColor.YELLOW + "Format: <enchant>:<level>");
+                        player.sendMessage(Component.text("[ConsumeFood2] =====Invalid Enchant format=====", NamedTextColor.RED));
+                        player.sendMessage(Component.text("[ConsumeFood2] Format: <enchant>:<level>", NamedTextColor.YELLOW));
                     }
                 }
                 case SOUND -> {
@@ -163,8 +164,8 @@ public class CustomFoodEditEvent implements Listener {
                         customFood.setOption(Food.Options.SOUND, message);
                     } catch (ArrayIndexOutOfBoundsException | NullPointerException | NumberFormatException ex) {
                         save = false;
-                        player.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "=====Invalid Command Format=====");
-                        player.sendMessage(ConsumeFood2.PREFIX + ChatColor.YELLOW + "Format: <sound>:<volume>:<pitch>");
+                        player.sendMessage(Component.text("[ConsumeFood2] =====Invalid Command Format=====", NamedTextColor.RED));
+                        player.sendMessage(Component.text("[ConsumeFood2] Format: <sound>:<volume>:<pitch>", NamedTextColor.YELLOW));
                     }
                 }
                 case POTION_COLOR -> {
@@ -187,7 +188,7 @@ public class CustomFoodEditEvent implements Listener {
                         String[] a = message.split(":");
                         String pluginName = a[0];
                         if (Bukkit.getPluginManager().getPlugin(pluginName) == null) {
-                            player.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "The plugin could not be found: " + pluginName);
+                            player.sendMessage(Component.text("[ConsumeFood2] The plugin could not be found: " + pluginName, NamedTextColor.RED));
                         } else {
                             String item_id = a[1];
                             switch (pluginName) {
@@ -195,18 +196,18 @@ public class CustomFoodEditEvent implements Listener {
                                     if (CustomStack.isInRegistry(item_id)) {
                                         customFood.setOption(Food.Options.OTHER_PLUGIN_COMPATIBILITY, message);
                                     } else {
-                                        player.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "This item id is not registered in ItemsAdder");
+                                        player.sendMessage(Component.text("[ConsumeFood2] This item id is not registered in ItemsAdder", NamedTextColor.RED));
                                     }
                                 }
                                 default -> {
-                                    player.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "Incompatible plugin name: " + pluginName);
+                                    player.sendMessage(Component.text("[ConsumeFood2] Incompatible plugin name: " + pluginName, NamedTextColor.RED));
                                 }
                             }
                         }
                     } catch (ArrayIndexOutOfBoundsException ex) {
                         save = false;
-                        player.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "=====Invalid Command Format=====");
-                        player.sendMessage(ConsumeFood2.PREFIX + ChatColor.YELLOW + "Format: <plugin>:<item_id>");
+                        player.sendMessage(Component.text("[ConsumeFood2] =====Invalid Command Format=====", NamedTextColor.RED));
+                        player.sendMessage(Component.text("[ConsumeFood2] Format: <plugin>:<item_id>", NamedTextColor.YELLOW));
                     }
                 }
             }
@@ -230,7 +231,7 @@ public class CustomFoodEditEvent implements Listener {
             if (!customFoodManager.hasCustomFood(message)) {
                 customFoodManager.createCustomFood(message);
             } else {
-                player.sendMessage(ChatColor.RED + "This internalname already exists");
+                player.sendMessage(Component.text("This internalname already exists", NamedTextColor.RED));
             }
             playerData.removeTempData("CustomFood_Create");
             Bukkit.getScheduler().runTask(plugin, () -> {
@@ -288,10 +289,10 @@ public class CustomFoodEditEvent implements Listener {
                             customFoodManager.openCustomFoodEditGui(CustomFoodEditGui.Type.SELECT, player);
                         }
                         case "Create" -> {
-                            player.sendMessage(ChatColor.GRAY + "========================================");
-                            player.sendMessage(ChatColor.GRAY + "Please enter the internalname");
-                            player.sendMessage(ChatColor.GRAY + "Cancel when entering 'cancel'");
-                            player.sendMessage(ChatColor.GRAY + "========================================");
+                            player.sendMessage(Component.text("========================================", NamedTextColor.GRAY));
+                            player.sendMessage(Component.text("Please enter the internalname", NamedTextColor.GRAY));
+                            player.sendMessage(Component.text("Cancel when entering 'cancel'", NamedTextColor.GRAY));
+                            player.sendMessage(Component.text("========================================", NamedTextColor.GRAY));
                             playerData.setTempData("CustomFood_Create","none");
                             player.closeInventory();
                         }
@@ -310,7 +311,7 @@ public class CustomFoodEditEvent implements Listener {
                                     player.getInventory().addItem(customFoodStack);
                                 }
                             } else {
-                                player.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "Invalid InternalName: " + data);
+                                player.sendMessage(ConsumeFood2.PREFIX.append(Component.text("Invalid InternalName: " + data, NamedTextColor.RED)));
                             }
                         }
                     }
@@ -321,12 +322,11 @@ public class CustomFoodEditEvent implements Listener {
                     switch (data) {
                         case "Back" -> {
                             customFoodManager.openCustomFoodEditGui(CustomFoodEditGui.Type.SELECT, player);
-                            //playerData.removeTempData("CustomFood_Edit_Key");
                         }
                         case "Edit_Item" -> {
                             if (e.isRightClick()) {
                                 if (!playerData.hasTempData("CustomFood_Edit_Key")) {
-                                    player.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "internalName does not exist");
+                                    player.sendMessage(Component.text("[ConsumeFood2] internalName does not exist", NamedTextColor.RED));
                                     player.closeInventory();
                                     return;
                                 }
@@ -338,7 +338,7 @@ public class CustomFoodEditEvent implements Listener {
                         }
                         default -> {
                             if (!playerData.hasTempData("CustomFood_Edit_Key")) {
-                                player.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "internalName does not exist");
+                                player.sendMessage(Component.text("[ConsumeFood2] internalName does not exist", NamedTextColor.RED));
                                 player.closeInventory();
                                 return;
                             }
@@ -351,10 +351,10 @@ public class CustomFoodEditEvent implements Listener {
                                 case MATERIAL -> {
                                     if (e.isLeftClick()) {
                                         open = false;
-                                        player.sendMessage(ChatColor.GRAY + "========================================");
-                                        player.sendMessage(ChatColor.GRAY + "Please enter the material");
-                                        player.sendMessage(ChatColor.GRAY + "Cancel when entering 'cancel'");
-                                        player.sendMessage(ChatColor.GRAY + "========================================");
+                                        player.sendMessage(Component.text("========================================", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("Please enter the material", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("Cancel when entering 'cancel'", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("========================================", NamedTextColor.GRAY));
                                         playerData.setTempData("CustomFood_ChatEdit", data);
                                         player.closeInventory();
                                     } else if (e.isRightClick()) {
@@ -365,10 +365,10 @@ public class CustomFoodEditEvent implements Listener {
                                 case TEXTURE_VALUE -> {
                                     if (e.isLeftClick()) {
                                         open = false;
-                                        player.sendMessage(ChatColor.GRAY + "========================================");
-                                        player.sendMessage(ChatColor.GRAY + "Please enter the texture value");
-                                        player.sendMessage(ChatColor.GRAY + "Cancel when entering 'cancel'");
-                                        player.sendMessage(ChatColor.GRAY + "========================================");
+                                        player.sendMessage(Component.text("========================================", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("Please enter the texture value", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("Cancel when entering 'cancel'", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("========================================", NamedTextColor.GRAY));
                                         playerData.setTempData("CustomFood_ChatEdit", data);
                                         player.closeInventory();
                                     } else if (e.isRightClick()) {
@@ -379,10 +379,10 @@ public class CustomFoodEditEvent implements Listener {
                                 case DISPLAYNAME -> {
                                     if (e.isLeftClick()) {
                                         open = false;
-                                        player.sendMessage(ChatColor.GRAY + "========================================");
-                                        player.sendMessage(ChatColor.GRAY + "Please enter the display name");
-                                        player.sendMessage(ChatColor.GRAY + "Cancel when entering 'cancel'");
-                                        player.sendMessage(ChatColor.GRAY + "========================================");
+                                        player.sendMessage(Component.text("========================================", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("Please enter the display name", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("Cancel when entering 'cancel'", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("========================================", NamedTextColor.GRAY));
                                         playerData.setTempData("CustomFood_ChatEdit", data);
                                         player.closeInventory();
                                     } else if (e.isRightClick()) {
@@ -393,10 +393,10 @@ public class CustomFoodEditEvent implements Listener {
                                 case CUSTOM_MODEL_DATA -> {
                                     if (e.isLeftClick()) {
                                         open = false;
-                                        player.sendMessage(ChatColor.GRAY + "========================================");
-                                        player.sendMessage(ChatColor.GRAY + "Please enter the custom model data");
-                                        player.sendMessage(ChatColor.GRAY + "Cancel when entering 'cancel'");
-                                        player.sendMessage(ChatColor.GRAY + "========================================");
+                                        player.sendMessage(Component.text("========================================", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("Please enter the custom model data", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("Cancel when entering 'cancel'", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("========================================", NamedTextColor.GRAY));
                                         playerData.setTempData("CustomFood_ChatEdit", data);
                                         player.closeInventory();
                                     } else if (e.isRightClick()) {
@@ -407,10 +407,10 @@ public class CustomFoodEditEvent implements Listener {
                                 case LORE -> {
                                     if (e.isLeftClick()) {
                                         open = false;
-                                        player.sendMessage(ChatColor.GRAY + "========================================");
-                                        player.sendMessage(ChatColor.GRAY + "Please enter the lore");
-                                        player.sendMessage(ChatColor.GRAY + "Cancel when entering 'cancel'");
-                                        player.sendMessage(ChatColor.GRAY + "========================================");
+                                        player.sendMessage(Component.text("========================================", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("Please enter the lore", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("Cancel when entering 'cancel'", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("========================================", NamedTextColor.GRAY));
                                         playerData.setTempData("CustomFood_ChatEdit", data);
                                         player.closeInventory();
                                     } else if (e.isRightClick()) {
@@ -421,12 +421,11 @@ public class CustomFoodEditEvent implements Listener {
                                 case POTION_EFFECT -> {
                                     if (e.isLeftClick()) {
                                         open = false;
-                                        player.sendMessage(ChatColor.GRAY + "========================================");
-                                        player.sendMessage(ChatColor.GRAY + "Please enter the potion effect");
-                                        player.sendMessage(ChatColor.GRAY + "Format: <potionType>:<level>:<duration>:<chance>");
-
-                                        player.sendMessage(ChatColor.GRAY + "Cancel when entering 'cancel'");
-                                        player.sendMessage(ChatColor.GRAY + "========================================");
+                                        player.sendMessage(Component.text("========================================", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("Please enter the potion effect", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("Format: <potionType>:<level>:<duration>:<chance>", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("Cancel when entering 'cancel'", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("========================================", NamedTextColor.GRAY));
                                         playerData.setTempData("CustomFood_ChatEdit", data);
                                         player.closeInventory();
                                     } else if (e.isRightClick()) {
@@ -437,12 +436,12 @@ public class CustomFoodEditEvent implements Listener {
                                 case COMMAND -> {
                                     if (e.isLeftClick()) {
                                         open = false;
-                                        player.sendMessage(ChatColor.GRAY + "========================================");
-                                        player.sendMessage(ChatColor.GRAY + "Please enter the command");
-                                        player.sendMessage(ChatColor.GRAY + "Format: <executeType>:<command>");
-                                        player.sendMessage(ChatColor.GRAY + "ExecuteType: [console, player]");
-                                        player.sendMessage(ChatColor.GRAY + "Cancel when entering 'cancel'");
-                                        player.sendMessage(ChatColor.GRAY + "========================================");
+                                        player.sendMessage(Component.text("========================================", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("Please enter the command", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("Format: <executeType>:<command>", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("ExecuteType: [console, player]", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("Cancel when entering 'cancel'", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("========================================", NamedTextColor.GRAY));
                                         playerData.setTempData("CustomFood_ChatEdit", data);
                                         player.closeInventory();
                                     } else if (e.isRightClick()) {
@@ -453,10 +452,10 @@ public class CustomFoodEditEvent implements Listener {
                                 case FOOD_LEVEL -> {
                                     if (e.isLeftClick()) {
                                         open = false;
-                                        player.sendMessage(ChatColor.GRAY + "========================================");
-                                        player.sendMessage(ChatColor.GRAY + "Please enter the food level");
-                                        player.sendMessage(ChatColor.GRAY + "Cancel when entering 'cancel'");
-                                        player.sendMessage(ChatColor.GRAY + "========================================");
+                                        player.sendMessage(Component.text("========================================", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("Please enter the food level", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("Cancel when entering 'cancel'", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("========================================", NamedTextColor.GRAY));
                                         playerData.setTempData("CustomFood_ChatEdit", data);
                                         player.closeInventory();
                                     } else if (e.isRightClick()) {
@@ -467,10 +466,10 @@ public class CustomFoodEditEvent implements Listener {
                                 case SATURATION -> {
                                     if (e.isLeftClick()) {
                                         open = false;
-                                        player.sendMessage(ChatColor.GRAY + "========================================");
-                                        player.sendMessage(ChatColor.GRAY + "Please enter the saturation");
-                                        player.sendMessage(ChatColor.GRAY + "Cancel when entering 'cancel'");
-                                        player.sendMessage(ChatColor.GRAY + "========================================");
+                                        player.sendMessage(Component.text("========================================", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("Please enter the saturation", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("Cancel when entering 'cancel'", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("========================================", NamedTextColor.GRAY));
                                         playerData.setTempData("CustomFood_ChatEdit", data);
                                         player.closeInventory();
                                     } else if (e.isRightClick()) {
@@ -481,10 +480,10 @@ public class CustomFoodEditEvent implements Listener {
                                 case COOLDOWN -> {
                                     if (e.isLeftClick()) {
                                         open = false;
-                                        player.sendMessage(ChatColor.GRAY + "========================================");
-                                        player.sendMessage(ChatColor.GRAY + "Please enter the cooldown");
-                                        player.sendMessage(ChatColor.GRAY + "Cancel when entering 'cancel'");
-                                        player.sendMessage(ChatColor.GRAY + "========================================");
+                                        player.sendMessage(Component.text("========================================", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("Please enter the cooldown", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("Cancel when entering 'cancel'", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("========================================", NamedTextColor.GRAY));
                                         playerData.setTempData("CustomFood_ChatEdit", data);
                                         player.closeInventory();
                                     } else if (e.isRightClick()) {
@@ -495,11 +494,11 @@ public class CustomFoodEditEvent implements Listener {
                                 case ENCHANT -> {
                                     if (e.isLeftClick()) {
                                         open = false;
-                                        player.sendMessage(ChatColor.GRAY + "========================================");
-                                        player.sendMessage(ChatColor.GRAY + "Please enter the enchant");
-                                        player.sendMessage(ChatColor.GRAY + "Format: <enchant>:<level>");
-                                        player.sendMessage(ChatColor.GRAY + "Cancel when entering 'cancel'");
-                                        player.sendMessage(ChatColor.GRAY + "========================================");
+                                        player.sendMessage(Component.text("========================================", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("Please enter the enchant", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("Format: <enchant>:<level>", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("Cancel when entering 'cancel'", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("========================================", NamedTextColor.GRAY));
                                         playerData.setTempData("CustomFood_ChatEdit", data);
                                         player.closeInventory();
                                     } else if (e.isRightClick()) {
@@ -555,11 +554,11 @@ public class CustomFoodEditEvent implements Listener {
                                 case SOUND -> {
                                     if (e.isLeftClick()) {
                                         open = false;
-                                        player.sendMessage(ChatColor.GRAY + "========================================");
-                                        player.sendMessage(ChatColor.GRAY + "Please enter the sound");
-                                        player.sendMessage(ChatColor.GRAY + "Format: <sound>:<volume>:<pitch>");
-                                        player.sendMessage(ChatColor.GRAY + "Cancel when entering 'cancel'");
-                                        player.sendMessage(ChatColor.GRAY + "========================================");
+                                        player.sendMessage(Component.text("========================================", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("Please enter the sound", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("Format: <sound>:<volume>:<pitch>", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("Cancel when entering 'cancel'", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("========================================", NamedTextColor.GRAY));
                                         playerData.setTempData("CustomFood_ChatEdit", data);
                                         player.closeInventory();
                                     } else if (e.isRightClick()) {
@@ -570,11 +569,11 @@ public class CustomFoodEditEvent implements Listener {
                                 case POTION_COLOR -> {
                                     if (e.isLeftClick()) {
                                         open = false;
-                                        player.sendMessage(ChatColor.GRAY + "========================================");
-                                        player.sendMessage(ChatColor.GRAY + "Please enter the potion color");
-                                        player.sendMessage(ChatColor.GRAY + "ex. #ffffff");
-                                        player.sendMessage(ChatColor.GRAY + "Cancel when entering 'cancel'");
-                                        player.sendMessage(ChatColor.GRAY + "========================================");
+                                        player.sendMessage(Component.text("========================================", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("Please enter the potion color", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("ex. #ffffff", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("Cancel when entering 'cancel'", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("========================================", NamedTextColor.GRAY));
                                         playerData.setTempData("CustomFood_ChatEdit", data);
                                         player.closeInventory();
                                     } else if (e.isRightClick()) {
@@ -621,10 +620,10 @@ public class CustomFoodEditEvent implements Listener {
                                 case EAT_SECONDS -> {
                                     if (e.isLeftClick()) {
                                         open = false;
-                                        player.sendMessage(ChatColor.GRAY + "========================================");
-                                        player.sendMessage(ChatColor.GRAY + "Please enter the eat seconds");
-                                        player.sendMessage(ChatColor.GRAY + "Cancel when entering 'cancel'");
-                                        player.sendMessage(ChatColor.GRAY + "========================================");
+                                        player.sendMessage(Component.text("========================================", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("Please enter the eat seconds", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("Cancel when entering 'cancel'", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("========================================", NamedTextColor.GRAY));
                                         playerData.setTempData("CustomFood_ChatEdit", data);
                                         player.closeInventory();
                                     } else if (e.isRightClick()) {
@@ -635,10 +634,10 @@ public class CustomFoodEditEvent implements Listener {
                                 case MAX_STACK_SIZE -> {
                                     if (e.isLeftClick()) {
                                         open = false;
-                                        player.sendMessage(ChatColor.GRAY + "========================================");
-                                        player.sendMessage(ChatColor.GRAY + "Please enter the max stack size");
-                                        player.sendMessage(ChatColor.GRAY + "Cancel when entering 'cancel'");
-                                        player.sendMessage(ChatColor.GRAY + "========================================");
+                                        player.sendMessage(Component.text("========================================", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("Please enter the max stack size", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("Cancel when entering 'cancel'", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("========================================", NamedTextColor.GRAY));
                                         playerData.setTempData("CustomFood_ChatEdit", data);
                                         player.closeInventory();
                                     } else if (e.isRightClick()) {
@@ -658,10 +657,10 @@ public class CustomFoodEditEvent implements Listener {
                                 case MAX_CONSUME_COUNT -> {
                                     if (e.isLeftClick()) {
                                         open = false;
-                                        player.sendMessage(ChatColor.GRAY + "========================================");
-                                        player.sendMessage(ChatColor.GRAY + "Please enter the max consume count");
-                                        player.sendMessage(ChatColor.GRAY + "Cancel when entering 'cancel'");
-                                        player.sendMessage(ChatColor.GRAY + "========================================");
+                                        player.sendMessage(Component.text("========================================", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("Please enter the max consume count", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("Cancel when entering 'cancel'", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("========================================", NamedTextColor.GRAY));
                                         playerData.setTempData("CustomFood_ChatEdit", data);
                                         player.closeInventory();
                                     } else if (e.isRightClick()) {
@@ -681,12 +680,12 @@ public class CustomFoodEditEvent implements Listener {
                                 case OTHER_PLUGIN_COMPATIBILITY -> {
                                     if (e.isLeftClick()) {
                                         open = false;
-                                        player.sendMessage(ChatColor.GRAY + "========================================");
-                                        player.sendMessage(ChatColor.GRAY + "Please enter the other plugin compatibility");
-                                        player.sendMessage(ChatColor.GRAY + "Format: <plugin>:<item_id>, ex: ItemsAdder:test");
-                                        player.sendMessage(ChatColor.GRAY + "Compatibility List: " + pluginCompatiblityList);
-                                        player.sendMessage(ChatColor.GRAY + "Cancel when entering 'cancel'");
-                                        player.sendMessage(ChatColor.GRAY + "========================================");
+                                        player.sendMessage(Component.text("========================================", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("Please enter the other plugin compatibility", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("Format: <plugin>:<item_id>, ex: ItemsAdder:test", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("Compatibility List: " + pluginCompatiblityList, NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("Cancel when entering 'cancel'", NamedTextColor.GRAY));
+                                        player.sendMessage(Component.text("========================================", NamedTextColor.GRAY));
                                         playerData.setTempData("CustomFood_ChatEdit", data);
                                         player.closeInventory();
                                     } else if (e.isRightClick()) {

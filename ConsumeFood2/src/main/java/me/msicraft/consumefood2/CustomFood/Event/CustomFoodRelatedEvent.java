@@ -16,6 +16,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.enchantment.PrepareItemEnchantEvent;
 import org.bukkit.event.inventory.FurnaceBurnEvent;
 import org.bukkit.event.inventory.FurnaceSmeltEvent;
@@ -41,6 +42,13 @@ public class CustomFoodRelatedEvent implements Listener {
     public CustomFoodRelatedEvent(ConsumeFood2 plugin) {
         this.plugin = plugin;
         this.customFoodManager = plugin.getCustomFoodManager();
+    }
+
+    @EventHandler
+    public void onQuit(PlayerQuitEvent e) {
+        UUID uuid = e.getPlayer().getUniqueId();
+        globalCooldownMap.remove(uuid);
+        personalCooldownMap.remove(uuid);
     }
 
     @EventHandler
@@ -114,7 +122,7 @@ public class CustomFoodRelatedEvent implements Listener {
                             message = message.replaceAll("%customfood_name%", (String) customFood.getOptionValue(Food.Options.DISPLAYNAME));
                             message = message.replaceAll("%customfood_global_timeleft%", String.valueOf(left));
                             message = PlaceholderAPI.setPlaceholders(player, message);
-                            player.sendMessage(message);
+                            player.sendMessage(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(message));
                         }
 
                         Bukkit.getPluginManager().callEvent(new CustomFoodConsumeEvent(false, left,
@@ -136,7 +144,7 @@ public class CustomFoodRelatedEvent implements Listener {
                         message = message.replaceAll("%customfood_name%", (String) customFood.getOptionValue(Food.Options.DISPLAYNAME));
                         message = message.replaceAll("%customfood_personal_timeleft%", String.valueOf(left));
                         message = PlaceholderAPI.setPlaceholders(player, message);
-                        player.sendMessage(message);
+                        player.sendMessage(net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacySection().deserialize(message));
                     }
 
                     Bukkit.getPluginManager().callEvent(new CustomFoodConsumeEvent(false, left,

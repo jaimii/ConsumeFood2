@@ -3,8 +3,10 @@ package me.msicraft.consumefood2.Utils;
 import me.msicraft.API.Common;
 import me.msicraft.consumefood2.ConsumeFood2;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
 public class MessageUtil {
 
@@ -29,24 +31,25 @@ public class MessageUtil {
     public static void sendMessage(CommandSender sender, String messagePath) {
         String message = getConfigMessage(messagePath, true);
         if (message != null && !message.isEmpty()) {
-            sender.sendMessage(message);
+            sender.sendMessage(LegacyComponentSerializer.legacySection().deserialize(message));
         }
     }
 
     public static void sendErrorMessage(FoodType foodType, String errorType, String invalidKey, String... extraMessage) {
+        Component prefix = ConsumeFood2.PREFIX;
         switch (foodType) {
             case VANILLAFOOD -> {
-                Bukkit.getConsoleSender().sendMessage(ConsumeFood2.PREFIX + ChatColor.YELLOW + "=====VanillaFood " + errorType + "=====");
-                Bukkit.getConsoleSender().sendMessage(ConsumeFood2.PREFIX + ChatColor.YELLOW + "Invalid Material: " + invalidKey);
+                Bukkit.getConsoleSender().sendMessage(prefix.append(Component.text("=====VanillaFood " + errorType + "=====", NamedTextColor.YELLOW)));
+                Bukkit.getConsoleSender().sendMessage(prefix.append(Component.text("Invalid Material: " + invalidKey, NamedTextColor.YELLOW)));
                 for (String em : extraMessage) {
-                    Bukkit.getConsoleSender().sendMessage(ConsumeFood2.PREFIX + ChatColor.YELLOW + em);
+                    Bukkit.getConsoleSender().sendMessage(prefix.append(Component.text(em, NamedTextColor.YELLOW)));
                 }
             }
             case CUSTOMFOOD -> {
-                Bukkit.getConsoleSender().sendMessage(ConsumeFood2.PREFIX + ChatColor.YELLOW + "=====CustomFood " + errorType + "=====");
-                Bukkit.getConsoleSender().sendMessage(ConsumeFood2.PREFIX + ChatColor.YELLOW + "Invalid InternalName: " + invalidKey);
+                Bukkit.getConsoleSender().sendMessage(prefix.append(Component.text("=====CustomFood " + errorType + "=====", NamedTextColor.YELLOW)));
+                Bukkit.getConsoleSender().sendMessage(prefix.append(Component.text("Invalid InternalName: " + invalidKey, NamedTextColor.YELLOW)));
                 for (String em : extraMessage) {
-                    Bukkit.getConsoleSender().sendMessage(ConsumeFood2.PREFIX + ChatColor.YELLOW + em);
+                    Bukkit.getConsoleSender().sendMessage(prefix.append(Component.text(em, NamedTextColor.YELLOW)));
                 }
             }
         }

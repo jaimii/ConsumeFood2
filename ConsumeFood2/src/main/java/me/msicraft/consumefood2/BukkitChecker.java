@@ -27,6 +27,21 @@ public class BukkitChecker {
         return v;
     }
 
+    public int parseVersion(String version) {
+        if (version == null || version.isEmpty()) {
+            return 11601;
+        }
+        try {
+            String[] parts = version.split("\\.");
+            int major = Integer.parseInt(parts[0]);
+            int minor = parts.length > 1 ? Integer.parseInt(parts[1]) : 0;
+            int patch = parts.length > 2 ? Integer.parseInt(parts[2]) : 0;
+            return (major * 10000) + (minor * 100) + patch;
+        } catch (NumberFormatException e) {
+            return 11601;
+        }
+    }
+
     public void getPluginUpdateCheck(Consumer<String> consumer) {
         Bukkit.getScheduler().runTaskAsynchronously(this.plugin, () -> {
             try (InputStream inputStream = new URL("https://api.spigotmc.org/legacy/update.php?resource=" + this.resourceId).openStream(); Scanner scanner = new Scanner(inputStream)) {

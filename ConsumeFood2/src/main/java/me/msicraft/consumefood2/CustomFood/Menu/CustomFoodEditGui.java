@@ -9,7 +9,6 @@ import me.msicraft.consumefood2.CustomFood.CustomFoodManager;
 import me.msicraft.consumefood2.PlayerData.Data.PlayerData;
 import me.msicraft.consumefood2.Utils.GuiUtil;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
@@ -19,6 +18,9 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -84,9 +86,9 @@ public class CustomFoodEditGui extends CustomGui {
         itemStack = GuiUtil.createItemStack(Material.BOOK, pageS, GuiUtil.EMPTY_LORE, -1, selectKey, "Page");
         gui.setItem(49, itemStack);
 
-        List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.YELLOW + "Left Click: edit");
-        lore.add(ChatColor.YELLOW + "Right Click: get item");
+        List<Component> lore = new ArrayList<>();
+        lore.add(Component.text("Left Click: edit", NamedTextColor.YELLOW));
+        lore.add(Component.text("Right Click: get item", NamedTextColor.YELLOW));
         for (int a = lastCount; a < maxSize; a++) {
             String internalName = internalNames.get(a);
             CustomFood customFood = customFoodManager.getCustomFood(internalName);
@@ -94,7 +96,9 @@ public class CustomFoodEditGui extends CustomGui {
                 itemStack = customFood.getGuiItemStack(plugin.isUseFoodComponent());
                 ItemMeta itemMeta = itemStack.getItemMeta();
                 PersistentDataContainer dataContainer = itemMeta.getPersistentDataContainer();
-                itemMeta.setLore(lore);
+
+                itemMeta.lore(lore);
+
                 dataContainer.set(selectKey, PersistentDataType.STRING, internalName);
 
                 itemStack.setItemMeta(itemMeta);
@@ -114,29 +118,29 @@ public class CustomFoodEditGui extends CustomGui {
         CustomFoodManager customFoodManager = plugin.getCustomFoodManager();
         PlayerData playerData = plugin.getPlayerDataManager().getPlayerData(player);
         if (!playerData.hasTempData("CustomFood_Edit_Key")) {
-            player.sendMessage(ConsumeFood2.PREFIX + ChatColor.RED + "internalName does not exist");
+            player.sendMessage(ConsumeFood2.PREFIX.append(Component.text("internalName does not exist", NamedTextColor.RED)));
             player.closeInventory();
             return;
         }
         String internalName = (String) playerData.getTempData("CustomFood_Edit_Key");
         CustomFood customFood = customFoodManager.getCustomFood(internalName);
         ItemStack itemStack;
-        itemStack = GuiUtil.createItemStack(Material.BARRIER, ChatColor.WHITE + "Back", GuiUtil.EMPTY_LORE, -1,
+        itemStack = GuiUtil.createItemStack(Material.BARRIER, "&fBack", GuiUtil.EMPTY_LORE, -1,
                 editKey, "Back");
         gui.setItem(0, itemStack);
 
-        List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.YELLOW + "Right Click: get item");
-        lore.add("");
+        List<Component> lore = new ArrayList<>();
+        lore.add(Component.text("Right Click: get item", NamedTextColor.YELLOW));
+        lore.add(Component.empty());
         for (String s : customFood.getLore()) {
-            s = Common.getInstance().translateColorCodes(s);
-            lore.add(s);
+            lore.add(LegacyComponentSerializer.legacyAmpersand().deserialize(s));
         }
         itemStack = customFoodManager.createItemStack(customFood);
         ItemMeta tItemMeta = itemStack.getItemMeta();
         PersistentDataContainer tDataContainer = tItemMeta.getPersistentDataContainer();
         tDataContainer.set(editKey, PersistentDataType.STRING, "Edit_Item");
-        tItemMeta.setLore(lore);
+        tItemMeta.lore(lore);
+
         itemStack.setItemMeta(tItemMeta);
         gui.setItem(4, itemStack);
 
@@ -150,163 +154,163 @@ public class CustomFoodEditGui extends CustomGui {
             lore.clear();
             ItemMeta itemMeta;
 
-            lore.add(ChatColor.YELLOW + "Left Click: edit value (change value)");
-            lore.add(ChatColor.YELLOW + "Right Click: reset");
-            lore.add("");
-            lore.add(ChatColor.GRAY + "Set " + options.getDisplayName());
+            lore.add(Component.text("Left Click: edit value (change value)", NamedTextColor.YELLOW));
+            lore.add(Component.text("Right Click: reset", NamedTextColor.YELLOW));
+            lore.add(Component.empty());
+            lore.add(Component.text("Set " + options.getDisplayName(), NamedTextColor.GRAY));
             for (String s : options.getDescription()) {
-                lore.add(ChatColor.WHITE + s);
+                lore.add(Component.text(s, NamedTextColor.WHITE));
             }
-            lore.add("");
+            lore.add(Component.empty());
             switch (options) {
                 case MATERIAL -> {
                     itemStack = new ItemStack(customFood.getMaterial());
-                    lore.add(ChatColor.GRAY + "Current Material: " + customFood.getMaterial().name());
+                    lore.add(Component.text("Current Material: " + customFood.getMaterial().name(), NamedTextColor.GRAY));
                 }
                 case TEXTURE_VALUE -> {
                     itemStack = new ItemStack(Material.PLAYER_HEAD);
                     itemMeta = itemStack.getItemMeta();
-                    itemMeta.setDisplayName(ChatColor.WHITE + "TextureValue");
-                    lore.add(ChatColor.GRAY + "Current Texture Value: " + customFood.getOptionValue(Food.Options.TEXTURE_VALUE));
+                    itemMeta.displayName(Component.text("TextureValue"));
+                    lore.add(Component.text("Current Texture Value: " + customFood.getOptionValue(Food.Options.TEXTURE_VALUE), NamedTextColor.GRAY));
                 }
                 case DISPLAYNAME -> {
                     itemStack = new ItemStack(Material.OAK_SIGN);
-                    lore.add(ChatColor.GRAY + "Current DisplayName: " + customFood.getOptionValue(Food.Options.DISPLAYNAME));
+                    lore.add(Component.text("Current DisplayName: " + customFood.getOptionValue(Food.Options.DISPLAYNAME), NamedTextColor.GRAY));
                 }
                 case CUSTOM_MODEL_DATA -> {
                     itemStack = new ItemStack(Material.NAME_TAG);
-                    lore.add(ChatColor.GRAY + "Current Custom Model Data: " + customFood.getOptionValue(Food.Options.CUSTOM_MODEL_DATA));
+                    lore.add(Component.text("Current Custom Model Data: " + customFood.getOptionValue(Food.Options.CUSTOM_MODEL_DATA), NamedTextColor.GRAY));
                 }
                 case LORE -> {
                     itemStack = new ItemStack(Material.PAPER);
-                    lore.add(ChatColor.GRAY + "Current Lore: ");
+                    lore.add(Component.text("Current Lore: ", NamedTextColor.GRAY));
                     for (String s : customFood.getLore()) {
-                        s = Common.getInstance().translateColorCodes(s);
-                        lore.add(s);
+                        lore.add(LegacyComponentSerializer.legacyAmpersand().deserialize(s));
                     }
                 }
                 case POTION_EFFECT -> {
                     itemStack = new ItemStack(Material.POTION);
-                    lore.add(ChatColor.GRAY + "Format: <potionType>:<level>:<duration>:<chance>");
-                    lore.add(ChatColor.GRAY + "Current Potion Effect: ");
+                    lore.add(Component.text("Format: <potionType>:<level>:<duration>:<chance>", NamedTextColor.GRAY));
+                    lore.add(Component.text("Current Potion Effect: ", NamedTextColor.GRAY));
                     customFood.getPotionEffects().forEach(foodPotionEffect -> {
-                        lore.add(ChatColor.GRAY + foodPotionEffect.toFormat());
+                        lore.add(Component.text(foodPotionEffect.toFormat(), NamedTextColor.GRAY));
                     });
                 }
                 case COMMAND -> {
                     itemStack = new ItemStack(Material.COMMAND_BLOCK);
-                    lore.add(ChatColor.GRAY + "Format: <executeType>:<command>");
-                    lore.add(ChatColor.GRAY + "Current Command: ");
+                    lore.add(Component.text("Format: <executeType>:<command>", NamedTextColor.GRAY));
+                    lore.add(Component.text("Current Command: ", NamedTextColor.GRAY));
                     customFood.getCommands().forEach(foodCommand -> {
-                        lore.add(ChatColor.GRAY + foodCommand.toFormat());
+                        lore.add(Component.text(foodCommand.toFormat(), NamedTextColor.GRAY));
                     });
                 }
                 case FOOD_LEVEL -> {
                     itemStack = new ItemStack(Material.PORKCHOP);
-                    lore.add(ChatColor.GRAY + "Current Food Level: " + customFood.getOptionValue(Food.Options.FOOD_LEVEL));
+                    lore.add(Component.text("Current Food Level: " + customFood.getOptionValue(Food.Options.FOOD_LEVEL), NamedTextColor.GRAY));
                 }
                 case SATURATION -> {
                     itemStack = new ItemStack(Material.COOKED_PORKCHOP);
-                    lore.add(ChatColor.GRAY + "Current Saturation: " + customFood.getOptionValue(Food.Options.SATURATION));
+                    lore.add(Component.text("Current Saturation: " + customFood.getOptionValue(Food.Options.SATURATION), NamedTextColor.GRAY));
                 }
                 case COOLDOWN -> {
                     itemStack = new ItemStack(Material.COMPASS);
-                    lore.add(ChatColor.GRAY + "Current Cooldown: " + customFood.getOptionValue(Food.Options.COOLDOWN));
+                    lore.add(Component.text("Current Cooldown: " + customFood.getOptionValue(Food.Options.COOLDOWN), NamedTextColor.GRAY));
                 }
                 case ENCHANT -> {
                     itemStack = new ItemStack(Material.ENCHANTED_BOOK);
-                    lore.add(ChatColor.GRAY + "Format: <enchant>:<level>");
-                    lore.add(ChatColor.GRAY + "Current Enchant: ");
+                    lore.add(Component.text("Format: <enchant>:<level>", NamedTextColor.GRAY));
+                    lore.add(Component.text("Current Enchant: ", NamedTextColor.GRAY));
                     customFood.getEnchantFormatList().forEach(s -> {
-                        lore.add(ChatColor.GRAY + s);
+                        lore.add(Component.text(s, NamedTextColor.GRAY));
                     });
                 }
                 case HIDE_ENCHANT -> {
                     itemStack = new ItemStack(Material.ENCHANTING_TABLE);
-                    lore.add(ChatColor.GRAY + "Current HideEnchant: " + customFood.getOptionValue(Food.Options.HIDE_ENCHANT));
+                    lore.add(Component.text("Current HideEnchant: " + customFood.getOptionValue(Food.Options.HIDE_ENCHANT), NamedTextColor.GRAY));
                 }
                 case DISABLE_CRAFTING -> {
                     itemStack = new ItemStack(Material.CRAFTING_TABLE);
-                    lore.add(ChatColor.GRAY + "Current Disable Crafting: " + customFood.getOptionValue(Food.Options.DISABLE_CRAFTING));
+                    lore.add(Component.text("Current Disable Crafting: " + customFood.getOptionValue(Food.Options.DISABLE_CRAFTING), NamedTextColor.GRAY));
                 }
                 case DISABLE_SMELTING -> {
                     itemStack = new ItemStack(Material.FURNACE);
-                    lore.add(ChatColor.GRAY + "Current Disable Smelting: " + customFood.getOptionValue(Food.Options.DISABLE_SMELTING));
+                    lore.add(Component.text("Current Disable Smelting: " + customFood.getOptionValue(Food.Options.DISABLE_SMELTING), NamedTextColor.GRAY));
                 }
                 case DISABLE_ANVIL -> {
                     itemStack = new ItemStack(Material.ANVIL);
-                    lore.add(ChatColor.GRAY + "Current Disable Anvil: " + customFood.getOptionValue(Food.Options.DISABLE_ANVIL));
+                    lore.add(Component.text("Current Disable Anvil: " + customFood.getOptionValue(Food.Options.DISABLE_ANVIL), NamedTextColor.GRAY));
                 }
                 case DISABLE_ENCHANT -> {
                     itemStack = new ItemStack(Material.ENCHANTING_TABLE);
-                    lore.add(ChatColor.GRAY + "Current Disable Enchant: " + customFood.getOptionValue(Food.Options.DISABLE_ENCHANT));
+                    lore.add(Component.text("Current Disable Enchant: " + customFood.getOptionValue(Food.Options.DISABLE_ENCHANT), NamedTextColor.GRAY));
                 }
                 case SOUND -> {
                     itemStack = new ItemStack(Material.JUKEBOX);
-                    lore.add(ChatColor.GRAY + "Format: <sound>:<volume>:<pitch>");
-                    lore.add(ChatColor.GRAY + "Current Sound: " + customFood.getOptionValue(Food.Options.SOUND));
+                    lore.add(Component.text("Format: <sound>:<volume>:<pitch>", NamedTextColor.GRAY));
+                    lore.add(Component.text("Current Sound: " + customFood.getOptionValue(Food.Options.SOUND), NamedTextColor.GRAY));
                 }
                 case POTION_COLOR -> {
                     itemStack = new ItemStack(Material.SPLASH_POTION);
-                    lore.add(ChatColor.GRAY + "Current Potion Color: " + customFood.getOptionValue(Food.Options.POTION_COLOR));
+                    lore.add(Component.text("Current Potion Color: " + customFood.getOptionValue(Food.Options.POTION_COLOR), NamedTextColor.GRAY));
                 }
                 case HIDE_POTION_EFFECT -> {
                     itemStack = new ItemStack(Material.LINGERING_POTION);
-                    lore.add(ChatColor.GRAY + "Current HidePotionEffect: " + customFood.getOptionValue(Food.Options.HIDE_POTION_EFFECT));
+                    lore.add(Component.text("Current HidePotionEffect: " + customFood.getOptionValue(Food.Options.HIDE_POTION_EFFECT), NamedTextColor.GRAY));
                 }
                 case UNSTACKABLE -> {
                     itemStack = new ItemStack(Material.CHEST);
-                    lore.add(ChatColor.GRAY + "Current Unstackable: " + customFood.getOptionValue(Food.Options.UNSTACKABLE));
+                    lore.add(Component.text("Current Unstackable: " + customFood.getOptionValue(Food.Options.UNSTACKABLE), NamedTextColor.GRAY));
                 }
                 case INSTANT_EAT -> {
                     itemStack = new ItemStack(Material.CAKE);
-                    lore.add(ChatColor.GRAY + "Current Instant Eat: " + customFood.getOptionValue(Food.Options.INSTANT_EAT));
+                    lore.add(Component.text("Current Instant Eat: " + customFood.getOptionValue(Food.Options.INSTANT_EAT), NamedTextColor.GRAY));
                 }
                 case ALWAYS_EAT -> {
                     if (!upper_1_20_5) {
                         continue;
                     }
                     itemStack = new ItemStack(Material.CAKE);
-                    lore.add(ChatColor.GRAY + "Current Always Eat: " + customFood.getOptionValue(Food.Options.ALWAYS_EAT));
+                    lore.add(Component.text("Current Always Eat: " + customFood.getOptionValue(Food.Options.ALWAYS_EAT), NamedTextColor.GRAY));
                 }
                 case EAT_SECONDS -> {
                     if (!upper_1_20_5) {
                         continue;
                     }
                     itemStack = new ItemStack(Material.KELP);
-                    lore.add(ChatColor.GRAY + "Current Eat Seconds: " + customFood.getOptionValue(Food.Options.EAT_SECONDS));
+                    lore.add(Component.text("Current Eat Seconds: " + customFood.getOptionValue(Food.Options.EAT_SECONDS), NamedTextColor.GRAY));
                 }
                 case MAX_STACK_SIZE -> {
                     if (!upper_1_20_5) {
                         continue;
                     }
                     itemStack = new ItemStack(Material.SHULKER_BOX);
-                    lore.add(ChatColor.GRAY + "Current Max Stack Size: " + customFood.getOptionValue(Food.Options.MAX_STACK_SIZE));
+                    lore.add(Component.text("Current Max Stack Size: " + customFood.getOptionValue(Food.Options.MAX_STACK_SIZE), NamedTextColor.GRAY));
                 }
                 case HIDE_ADDITIONAL_TOOLTIP -> {
                     if (!upper_1_20_5) {
                         continue;
                     }
                     itemStack = new ItemStack(Material.FIREWORK_ROCKET);
-                    lore.add(ChatColor.GRAY + "Current Hide Additional Tooltip: " + customFood.getOptionValue(Food.Options.HIDE_ADDITIONAL_TOOLTIP));
+                    lore.add(Component.text("Current Hide Additional Tooltip: " + customFood.getOptionValue(Food.Options.HIDE_ADDITIONAL_TOOLTIP), NamedTextColor.GRAY));
                 }
                 case MAX_CONSUME_COUNT -> {
                     itemStack = new ItemStack(Material.COOKED_BEEF);
-                    lore.add(ChatColor.GRAY + "Current Max Consume Count: " + customFood.getOptionValue(Food.Options.MAX_CONSUME_COUNT));
+                    lore.add(Component.text("Current Max Consume Count: " + customFood.getOptionValue(Food.Options.MAX_CONSUME_COUNT), NamedTextColor.GRAY));
                 }
                 case DISPLAY_MAX_CONSUME_COUNT -> {
                     itemStack = new ItemStack(Material.COOKED_BEEF);
-                    lore.add(ChatColor.GRAY + "Current DisplayMaxConsumeCount: " + customFood.getOptionValue(Food.Options.DISPLAY_MAX_CONSUME_COUNT));
+                    lore.add(Component.text("Current DisplayMaxConsumeCount: " + customFood.getOptionValue(Food.Options.DISPLAY_MAX_CONSUME_COUNT), NamedTextColor.GRAY));
                 }
                 case OTHER_PLUGIN_COMPATIBILITY -> {
                     itemStack = new ItemStack(Material.BEDROCK);
-                    lore.add(ChatColor.GREEN + "Current OtherPluginCompatibility: " + customFood.getOptionValue(Food.Options.OTHER_PLUGIN_COMPATIBILITY));
+                    lore.add(Component.text("Current OtherPluginCompatibility: " + customFood.getOptionValue(Food.Options.OTHER_PLUGIN_COMPATIBILITY), NamedTextColor.GREEN));
                 }
             }
             itemMeta = itemStack.getItemMeta();
             PersistentDataContainer dataContainer = itemMeta.getPersistentDataContainer();
-            itemMeta.setDisplayName(options.getDisplayName());
-            itemMeta.setLore(lore);
+            itemMeta.displayName(LegacyComponentSerializer.legacyAmpersand().deserialize(options.getDisplayName()));
+            itemMeta.lore(lore);
+
             dataContainer.set(editKey,  PersistentDataType.STRING, options.name().toUpperCase());
             itemStack.setItemMeta(itemMeta);
 
@@ -321,7 +325,7 @@ public class CustomFoodEditGui extends CustomGui {
         gui.setItem(50, itemStack);
         itemStack = GuiUtil.createItemStack(Material.ARROW, "Previous", GuiUtil.EMPTY_LORE, -1, deleteKey, "Previous");
         gui.setItem(48, itemStack);
-        itemStack = GuiUtil.createItemStack(Material.BARRIER, ChatColor.WHITE + "Back", GuiUtil.EMPTY_LORE,
+        itemStack = GuiUtil.createItemStack(Material.BARRIER, "&fBack", GuiUtil.EMPTY_LORE,
                 -1, deleteKey, "Back");
         gui.setItem(45, itemStack);
 
@@ -338,8 +342,8 @@ public class CustomFoodEditGui extends CustomGui {
         itemStack = GuiUtil.createItemStack(Material.BOOK, pageS, GuiUtil.EMPTY_LORE, -1, selectKey, "Page");
         gui.setItem(49, itemStack);
 
-        List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.YELLOW + "Left Click: delete");
+        List<Component> lore = new ArrayList<>();
+        lore.add(Component.text("Left Click: delete", NamedTextColor.YELLOW));
         for (int a = lastCount; a < maxSize; a++) {
             String internalName = internalNames.get(a);
             CustomFood customFood = customFoodManager.getCustomFood(internalName);
@@ -347,7 +351,8 @@ public class CustomFoodEditGui extends CustomGui {
                 itemStack = customFood.getGuiItemStack(plugin.isUseFoodComponent());
                 ItemMeta itemMeta = itemStack.getItemMeta();
                 PersistentDataContainer dataContainer = itemMeta.getPersistentDataContainer();
-                itemMeta.setLore(lore);
+
+                itemMeta.lore(lore);
                 dataContainer.set(deleteKey, PersistentDataType.STRING, internalName);
 
                 itemStack.setItemMeta(itemMeta);

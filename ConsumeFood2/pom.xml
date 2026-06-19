@@ -10,14 +10,14 @@
         <version>1.0</version>
     </parent>
 
-    <artifactId>ConsuemFood2</artifactId>
+    <artifactId>ConsumeFood2</artifactId>
     <packaging>jar</packaging>
 
     <name>ConsumeFood2</name>
 
     <properties>
-        <maven.compiler.source>16</maven.compiler.source>
-        <maven.compiler.target>16</maven.compiler.target>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -74,14 +74,14 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.spigotmc</groupId>
-            <artifactId>spigot-api</artifactId>
-            <version>1.16.1-R0.1-SNAPSHOT</version>
+            <groupId>io.papermc.paper</groupId>
+            <artifactId>paper-api</artifactId>
+            <version>1.21.11-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>me.msicraft</groupId>
-            <artifactId>Upper_1_20_6</artifactId>
+            <artifactId>Upper_1_21_11</artifactId>
             <version>1.0</version>
         </dependency>
         <dependency>
