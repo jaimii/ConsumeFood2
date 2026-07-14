@@ -1,11 +1,10 @@
 package me.msicraft.upper_1_21_11;
 
-import de.tr7zw.changeme.nbtapi.NBT;
-import de.tr7zw.changeme.nbtapi.iface.ReadWriteNBT;
 import me.msicraft.API.Food.CustomFood;
 import me.msicraft.API.Food.Food;
 import me.msicraft.API.Food.FoodPotionEffect;
 import me.msicraft.API.Wrapper;
+import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -14,14 +13,19 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.inventory.meta.components.FoodComponent;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.Consumable;
 import io.papermc.paper.datacomponent.item.consumable.ConsumeEffect;
+import io.papermc.paper.datacomponent.item.consumable.ItemUseAnimation;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import com.destroystokyo.paper.profile.PlayerProfile;
+import com.destroystokyo.paper.profile.ProfileProperty;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -103,23 +107,18 @@ public class Upper_1_21_11 implements Wrapper {
                 itemMeta.setMaxStackSize((int) customFood.getOptionValue(Food.Options.MAX_STACK_SIZE));
             }
         }
-        itemStack.setItemMeta(itemMeta);
 
-        for (Enchantment enchantment : customFood.getEnchantments()) {
-            int level = customFood.getEnchantmentLevel(enchantment);
-            itemStack.addUnsafeEnchantment(enchantment, level);
-        }
-
-        if (itemStack.getType() == Material.PLAYER_HEAD) {
-            NBT.modifyComponents(itemStack, nbt -> {
-                ReadWriteNBT profileNbt = nbt.getOrCreateCompound("minecraft:profile");
-                profileNbt.setUUID("id", (UUID) customFood.getOptionValue(Food.Options.UUID));
-                ReadWriteNBT propertiesNbt = profileNbt.getCompoundList("properties").addCompound();
-                propertiesNbt.setString("name", "textures");
-                propertiesNbt.setString("value", (String) customFood.getOptionValue(Food.Options.TEXTURE_VALUE));
-            });
+        // Apply textured skull properties natively via Bukkit/Paper API instead of NBT-API
+        if (itemStack.getType() == Material.PLAYER_HEAD && itemMeta instanceof SkullMeta skullMeta) {
+            UUID uuid = (UUID) customFood.getOptionValue(Food.Options.UUID);
+            if (uuid == null) {
+                uuid = UUID.randomUUID();
+            }
+            PlayerProfile profile = Bukkit.createProfile(uuid, uuid.toString().substring(0, 16));
+            profile.setProperty(new ProfileProperty("textures", (String) customFood.getOptionValue(Food.Options.TEXTURE_VALUE)));
+            skullMeta.setOwnerProfile(profile);
         } else if (itemStack.getType() == Material.POTION || itemStack.getType() == Material.LINGERING_POTION || itemStack.getType() == Material.SPLASH_POTION) {
-            PotionMeta potionMeta = (PotionMeta) itemStack.getItemMeta();
+            PotionMeta potionMeta = (PotionMeta) itemMeta;
             String colorCode = (String) customFood.getOptionValue(Food.Options.POTION_COLOR);
             Color color;
             java.awt.Color awtColor;
@@ -130,28 +129,16 @@ public class Upper_1_21_11 implements Wrapper {
                 color = Color.WHITE;
             }
             potionMeta.setColor(color);
-            itemStack.setItemMeta(potionMeta);
         }
 
-        if (!itemStack.getType().isEdible()) {
-            if (bukkitVersion >= 12102) { // Matches robust semantic checks
-                NBT.modifyComponents(itemStack, nbt -> {
-                    ReadWriteNBT consumableNbt = nbt.getOrCreateCompound("minecraft:consumable");
-                    consumableNbt.setString("animation", "eat");
-                    if (customFood.hasOption(Food.Options.EAT_SECONDS)) {
-                        double eatSeconds = (double) customFood.getOptionValue(Food.Options.EAT_SECONDS);
-                        if (eatSeconds < 0) {
-                            eatSeconds = 0.0;
-                        }
-                        consumableNbt.setFloat("consume_seconds", (float) eatSeconds);
-                    }
-                    ReadWriteNBT soundNbt = consumableNbt.getOrCreateCompound("sound");
-                    soundNbt.setString("sound_id", "entity.generic.eat");
-                });
-            }
+        itemStack.setItemMeta(itemMeta);
+
+        for (Enchantment enchantment : customFood.getEnchantments()) {
+            int level = customFood.getEnchantmentLevel(enchantment);
+            itemStack.addUnsafeEnchantment(enchantment, level);
         }
 
-        if (bukkitVersion >= 12102) { // Matches robust semantic checks
+        if (bukkitVersion >= 12102) {
             Consumable.Builder consumableBuilder;
             if (itemStack.hasData(DataComponentTypes.CONSUMABLE)) {
                 consumableBuilder = itemStack.getData(DataComponentTypes.CONSUMABLE).toBuilder();
@@ -159,9 +146,15 @@ public class Upper_1_21_11 implements Wrapper {
                 consumableBuilder = Consumable.consumable();
             }
 
+            // If the item is not naturally edible, configure its use animations natively
+            if (!itemStack.getType().isEdible()) {
+                consumableBuilder.animation(ItemUseAnimation.EAT);
+                consumableBuilder.sound(Key.key("entity.generic.eat"));
+            }
+
             if (customFood.hasOption(Food.Options.EAT_SECONDS)) {
                 double eatSecondsD = (double) customFood.getOptionValue(Food.Options.EAT_SECONDS);
-                if (eatSecondsD > -1) {
+                if (eatSecondsD >= 0) {
                     consumableBuilder.consumeSeconds((float) eatSecondsD);
                 }
             }
@@ -174,9 +167,7 @@ public class Upper_1_21_11 implements Wrapper {
                 );
                 paperEffects.add(effect);
             }
-            if (!paperEffects.isEmpty()) {
-                consumableBuilder.addEffects(paperEffects);
-            }
+            consumableBuilder.addEffects(paperEffects);
 
             itemStack.setData(DataComponentTypes.CONSUMABLE, consumableBuilder.build());
         }

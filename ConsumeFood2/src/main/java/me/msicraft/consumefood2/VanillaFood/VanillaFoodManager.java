@@ -88,8 +88,19 @@ public class VanillaFoodManager {
     public void updateInventory(Player player) {
         if (player == null) return;
         ItemStack[] contents = player.getInventory().getContents();
-        for (ItemStack itemStack : contents) {
-            updateItemStack(itemStack);
+        for (int i = 0; i < contents.length; i++) {
+            ItemStack itemStack = contents[i];
+            if (itemStack != null && !itemStack.getType().isAir()) {
+                Material material = itemStack.getType();
+                VanillaFood vanillaFood = getVanillaFood(material);
+                if (vanillaFood != null) {
+                    ItemMeta itemMeta = itemStack.getItemMeta();
+                    if (!itemMeta.hasDisplayName() && !itemMeta.hasLore()) {
+                        applyVanillaFoodComponents(itemStack, itemMeta, vanillaFood);
+                        player.getInventory().setItem(i, itemStack); // Saves and force-syncs the slot [1]
+                    }
+                }
+            }
         }
     }
 
@@ -133,7 +144,13 @@ public class VanillaFoodManager {
 
         int bukkitVersion = plugin.getBukkitVersion();
         if (bukkitVersion >= 12102) {
-            Consumable.Builder consumableBuilder = Consumable.consumable();
+            Consumable.Builder consumableBuilder;
+            // Preserves existing default animations, sounds, and particles [1]
+            if (itemStack.hasData(DataComponentTypes.CONSUMABLE)) {
+                consumableBuilder = itemStack.getData(DataComponentTypes.CONSUMABLE).toBuilder();
+            } else {
+                consumableBuilder = Consumable.consumable();
+            }
 
             if (vanillaFood.hasOption(Food.Options.EAT_SECONDS)) {
                 double eatSeconds = (double) vanillaFood.getOptionValue(Food.Options.EAT_SECONDS);
@@ -312,8 +329,7 @@ public class VanillaFoodManager {
         if (itemStack != null) {
             Material material = itemStack.getType();
             if (vanillaFoodMap.containsKey(material)) {
-                ItemMeta meta = itemStack.getItemMeta();
-                return meta == null || (!meta.hasDisplayName() && !meta.hasLore());
+                return !itemStack.hasItemMeta();
             }
         }
         return false;

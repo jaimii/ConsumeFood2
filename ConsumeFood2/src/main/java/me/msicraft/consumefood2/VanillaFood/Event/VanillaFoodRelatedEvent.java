@@ -16,6 +16,9 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.block.BlockDropItemEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
@@ -51,13 +54,53 @@ public class VanillaFoodRelatedEvent implements Listener {
 
     @EventHandler
     public void onHeld(PlayerItemHeldEvent e) {
-        vanillaFoodManager.updateInventory(e.getPlayer());
+        Player player = e.getPlayer();
+        ItemStack heldItem = player.getInventory().getItem(e.getNewSlot());
+        if (heldItem != null) {
+            vanillaFoodManager.updateItemStack(heldItem);
+        }
     }
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent e) {
         if (e.getWhoClicked() instanceof Player player) {
-            Bukkit.getScheduler().runTask(plugin, () -> vanillaFoodManager.updateInventory(player));
+            ItemStack current = e.getCurrentItem();
+            ItemStack cursor = e.getCursor();
+            if (current != null && current.getType() != Material.AIR) {
+                vanillaFoodManager.updateItemStack(current);
+            }
+            if (cursor != null && cursor.getType() != Material.AIR) {
+                vanillaFoodManager.updateItemStack(cursor);
+            }
+        }
+    }
+
+    @EventHandler
+    public void onEntityDeath(EntityDeathEvent e) {
+        for (ItemStack drop : e.getDrops()) {
+            if (vanillaFoodManager.hasVanillaFood(drop.getType())) {
+                vanillaFoodManager.updateItemStack(drop);
+            }
+        }
+    }
+
+    @EventHandler
+    public void onBlockDrop(BlockDropItemEvent e) {
+        for (org.bukkit.entity.Item itemEntity : e.getItems()) {
+            ItemStack itemStack = itemEntity.getItemStack();
+            if (vanillaFoodManager.hasVanillaFood(itemStack.getType())) {
+                vanillaFoodManager.updateItemStack(itemStack);
+                itemEntity.setItemStack(itemStack);
+            }
+        }
+    }
+
+    @EventHandler
+    public void onPlayerDrop(PlayerDropItemEvent e) {
+        ItemStack itemStack = e.getItemDrop().getItemStack();
+        if (vanillaFoodManager.hasVanillaFood(itemStack.getType())) {
+            vanillaFoodManager.updateItemStack(itemStack);
+            e.getItemDrop().setItemStack(itemStack);
         }
     }
 
