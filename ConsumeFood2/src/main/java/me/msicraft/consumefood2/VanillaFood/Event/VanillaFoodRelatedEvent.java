@@ -15,6 +15,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -56,6 +58,27 @@ public class VanillaFoodRelatedEvent implements Listener {
     public void onInventoryClick(InventoryClickEvent e) {
         if (e.getWhoClicked() instanceof Player player) {
             Bukkit.getScheduler().runTask(plugin, () -> vanillaFoodManager.updateInventory(player));
+        }
+    }
+
+    @EventHandler
+    public void onPickup(EntityPickupItemEvent e) {
+        if (e.getEntity() instanceof Player) {
+            ItemStack itemStack = e.getItem().getItemStack();
+            if (vanillaFoodManager.hasVanillaFood(itemStack.getType())) {
+                vanillaFoodManager.updateItemStack(itemStack);
+                e.getItem().setItemStack(itemStack);
+            }
+        }
+    }
+
+    @EventHandler
+    public void onCraft(CraftItemEvent e) {
+        if (e.getWhoClicked() instanceof Player) {
+            ItemStack result = e.getCurrentItem();
+            if (result != null && vanillaFoodManager.hasVanillaFood(result.getType())) {
+                vanillaFoodManager.updateItemStack(result);
+            }
         }
     }
 

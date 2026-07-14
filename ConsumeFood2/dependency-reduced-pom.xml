@@ -6,7 +6,7 @@
     <version>1.0</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>ConsuemFood2</artifactId>
+  <artifactId>ConsumeFood2</artifactId>
   <name>ConsumeFood2</name>
   <build>
     <resources>
@@ -20,9 +20,6 @@
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
         <version>3.4.1</version>
-        <configuration>
-          <outputDirectory>C:\plugins\ConsumeFood2\1.3.1\dev-3</outputDirectory>
-        </configuration>
       </plugin>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -45,6 +42,7 @@
           </execution>
         </executions>
         <configuration>
+          <outputDirectory>C:\plugins\ConsumeFood2\1.3.1\dev-3</outputDirectory>
           <relocations>
             <relocation>
               <pattern>de.tr7zw.changeme.nbtapi</pattern>
@@ -57,9 +55,9 @@
   </build>
   <dependencies>
     <dependency>
-      <groupId>org.spigotmc</groupId>
-      <artifactId>spigot-api</artifactId>
-      <version>1.16.1-R0.1-SNAPSHOT</version>
+      <groupId>io.papermc.paper</groupId>
+      <artifactId>paper-api</artifactId>
+      <version>1.21.11-R0.1-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -82,8 +80,8 @@
     </dependency>
   </dependencies>
   <properties>
+    <maven.compiler.target>21</maven.compiler.target>
+    <maven.compiler.source>21</maven.compiler.source>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.target>16</maven.compiler.target>
-    <maven.compiler.source>16</maven.compiler.source>
   </properties>
 </project>

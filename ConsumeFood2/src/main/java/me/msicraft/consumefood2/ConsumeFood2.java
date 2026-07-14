@@ -117,10 +117,15 @@ public final class ConsumeFood2 extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        vanillaFoodManager.saveVanillaFood();
-        customFoodManager.saveCustomFood();
-
-        playerDataManager.saveAll();
+        if (vanillaFoodManager != null) {
+            vanillaFoodManager.saveVanillaFood();
+        }
+        if (customFoodManager != null) {
+            customFoodManager.saveCustomFood();
+        }
+        if (playerDataManager != null) {
+            playerDataManager.saveAll();
+        }
 
         getServer().getConsoleSender().sendMessage(PREFIX.append(Component.text("Plugin Disable", NamedTextColor.RED)));
     }

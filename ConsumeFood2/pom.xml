@@ -28,9 +28,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>3.4.1</version>
-                <configuration>
-                    <outputDirectory>C:\plugins\ConsumeFood2\1.3.1\dev-3</outputDirectory>
-                </configuration>
+                <!-- Removed outputDirectory from here so only the unshaded jar stays in target/ -->
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -55,6 +53,7 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <outputDirectory>C:\plugins\ConsumeFood2\1.3.1\dev-3</outputDirectory>
                     <relocations>
                         <relocation>
                             <pattern>de.tr7zw.changeme.nbtapi</pattern>

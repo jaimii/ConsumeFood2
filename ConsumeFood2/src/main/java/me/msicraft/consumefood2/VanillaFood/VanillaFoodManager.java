@@ -88,66 +88,71 @@ public class VanillaFoodManager {
     public void updateInventory(Player player) {
         if (player == null) return;
         ItemStack[] contents = player.getInventory().getContents();
-        for (int i = 0; i < contents.length; i++) {
-            ItemStack itemStack = contents[i];
-            if (itemStack == null || itemStack.getType().isAir()) continue;
+        for (ItemStack itemStack : contents) {
+            updateItemStack(itemStack);
+        }
+    }
 
-            Material material = itemStack.getType();
-            VanillaFood vanillaFood = getVanillaFood(material);
-            if (vanillaFood != null) {
-                // Check if the item is an un-modified vanilla item (No ItemMeta)
-                if (!itemStack.hasItemMeta()) {
-                    applyVanillaFoodComponents(itemStack, itemStack.getItemMeta(), vanillaFood);
-                } else {
-                    // Pre-existing metadata; double-check that it does not have custom displays or lores
-                    ItemMeta itemMeta = itemStack.getItemMeta();
-                    if (!itemMeta.hasDisplayName() && !itemMeta.hasLore()) {
-                        applyVanillaFoodComponents(itemStack, itemMeta, vanillaFood);
-                    }
-                }
+    public void updateItemStack(ItemStack itemStack) {
+        if (itemStack == null || itemStack.getType().isAir()) return;
+
+        Material material = itemStack.getType();
+        VanillaFood vanillaFood = getVanillaFood(material);
+        if (vanillaFood != null) {
+            ItemMeta itemMeta = itemStack.getItemMeta();
+            if (!itemMeta.hasDisplayName() && !itemMeta.hasLore()) {
+                applyVanillaFoodComponents(itemStack, itemMeta, vanillaFood);
             }
         }
     }
 
     private void applyVanillaFoodComponents(ItemStack itemStack, ItemMeta itemMeta, VanillaFood vanillaFood) {
         FoodComponent foodComponent = itemMeta.getFood();
-        int cfgFoodLevel = (int) vanillaFood.getOptionValue(Food.Options.FOOD_LEVEL);
-        float cfgSaturation = ((Double) vanillaFood.getOptionValue(Food.Options.SATURATION)).floatValue();
 
-        boolean modified = false;
-        if (foodComponent.getNutrition() != cfgFoodLevel || Float.compare(foodComponent.getSaturation(), cfgSaturation) != 0) {
-            foodComponent.setNutrition(cfgFoodLevel);
-            foodComponent.setSaturation(cfgSaturation);
-            itemMeta.setFood(foodComponent);
-            modified = true;
+        Object foodLvlObj = vanillaFood.getOptionValue(Food.Options.FOOD_LEVEL);
+        int cfgFoodLevel = 0;
+        if (foodLvlObj instanceof Number) {
+            cfgFoodLevel = ((Number) foodLvlObj).intValue();
         }
 
-        if (modified) {
-            itemStack.setItemMeta(itemMeta);
+        Object satObj = vanillaFood.getOptionValue(Food.Options.SATURATION);
+        float cfgSaturation = 0.0f;
+        if (satObj instanceof Number) {
+            cfgSaturation = ((Number) satObj).floatValue();
+        }
 
-            int bukkitVersion = plugin.getBukkitVersion();
-            if (bukkitVersion >= 12102) {
-                Consumable.Builder consumableBuilder;
-                if (itemStack.hasData(DataComponentTypes.CONSUMABLE)) {
-                    consumableBuilder = itemStack.getData(DataComponentTypes.CONSUMABLE).toBuilder();
-                } else {
-                    consumableBuilder = Consumable.consumable();
-                }
+        foodComponent.setNutrition(cfgFoodLevel);
+        foodComponent.setSaturation(cfgSaturation);
 
-                List<ConsumeEffect> paperEffects = new ArrayList<>();
-                for (FoodPotionEffect foodPotionEffect : vanillaFood.getPotionEffects()) {
-                    ConsumeEffect.ApplyStatusEffects effect = ConsumeEffect.applyStatusEffects(
-                            List.of(foodPotionEffect.getPotionEffect()),
-                            Float.parseFloat(String.valueOf(foodPotionEffect.getChance()))
-                    );
-                    paperEffects.add(effect);
-                }
-                if (!paperEffects.isEmpty()) {
-                    consumableBuilder.addEffects(paperEffects);
-                }
+        if (vanillaFood.hasOption(Food.Options.ALWAYS_EAT)) {
+            foodComponent.setCanAlwaysEat((boolean) vanillaFood.getOptionValue(Food.Options.ALWAYS_EAT));
+        }
 
-                itemStack.setData(DataComponentTypes.CONSUMABLE, consumableBuilder.build());
+        itemMeta.setFood(foodComponent);
+        itemStack.setItemMeta(itemMeta);
+
+        int bukkitVersion = plugin.getBukkitVersion();
+        if (bukkitVersion >= 12102) {
+            Consumable.Builder consumableBuilder = Consumable.consumable();
+
+            if (vanillaFood.hasOption(Food.Options.EAT_SECONDS)) {
+                double eatSeconds = (double) vanillaFood.getOptionValue(Food.Options.EAT_SECONDS);
+                if (eatSeconds >= 0) {
+                    consumableBuilder.consumeSeconds((float) eatSeconds);
+                }
             }
+
+            List<ConsumeEffect> paperEffects = new ArrayList<>();
+            for (FoodPotionEffect foodPotionEffect : vanillaFood.getPotionEffects()) {
+                ConsumeEffect.ApplyStatusEffects effect = ConsumeEffect.applyStatusEffects(
+                        List.of(foodPotionEffect.getPotionEffect()),
+                        Float.parseFloat(String.valueOf(foodPotionEffect.getChance()))
+                );
+                paperEffects.add(effect);
+            }
+            consumableBuilder.addEffects(paperEffects);
+
+            itemStack.setData(DataComponentTypes.CONSUMABLE, consumableBuilder.build());
         }
     }
 
@@ -307,7 +312,8 @@ public class VanillaFoodManager {
         if (itemStack != null) {
             Material material = itemStack.getType();
             if (vanillaFoodMap.containsKey(material)) {
-                return !itemStack.hasItemMeta();
+                ItemMeta meta = itemStack.getItemMeta();
+                return meta == null || (!meta.hasDisplayName() && !meta.hasLore());
             }
         }
         return false;
@@ -373,7 +379,7 @@ public class VanillaFoodManager {
                 player.getInventory().addItem(new ItemStack(Material.BOWL));
             }
         } catch (IllegalArgumentException ignored) {
-            // Material is not a natively registered VanillaFood.Type container (e.g. DIRT), bypass container return
+            // Material is not a native container-holding food, bypass container return safely
         }
 
         if (hand == EquipmentSlot.HAND) {
