@@ -97,7 +97,7 @@ public class VanillaFoodManager {
                     ItemMeta itemMeta = itemStack.getItemMeta();
                     if (!itemMeta.hasDisplayName() && !itemMeta.hasLore()) {
                         applyVanillaFoodComponents(itemStack, itemMeta, vanillaFood);
-                        player.getInventory().setItem(i, itemStack); // Saves and force-syncs the slot [1]
+                        player.getInventory().setItem(i, itemStack);
                     }
                 }
             }
@@ -167,7 +167,7 @@ public class VanillaFoodManager {
                 );
                 paperEffects.add(effect);
             }
-            consumableBuilder.addEffects(paperEffects);
+            consumableBuilder.effects(paperEffects);
 
             itemStack.setData(DataComponentTypes.CONSUMABLE, consumableBuilder.build());
         }
